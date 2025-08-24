@@ -7,31 +7,28 @@ class Home extends BaseController
     public function index()
     {
         $data = [
-            'title' => 'Welcome to ITE311-AMAR',
-            'content' => view('index')
+            'title' => 'Welcome to ITE311-AMAR'
         ];
         
-        return view('template', $data);
+        return view('index', $data);
     }
 
     public function about()
     {
         $data = [
-            'title' => 'About Us',
-            'content' => view('about')
+            'title' => 'About Us'
         ];
         
-        return view('template', $data);
+        return view('about', $data);
     }
 
     public function contact()
     {
         $data = [
-            'title' => 'Contact Us',
-            'content' => view('contact')
+            'title' => 'Contact Us'
         ];
         
-        return view('template', $data);
+        return view('contact', $data);
     }
 
     public function test()

@@ -1,3 +1,7 @@
+<?php $this->extend('template'); ?>
+
+<?php $this->section('content'); ?>
+
 <!-- Hero Section -->
 <div class="bg-primary text-white py-5 mb-5">
     <div class="container">
@@ -250,3 +254,5 @@
         </div>
     </div>
 </div>
+
+<?php $this->endSection(); ?>
