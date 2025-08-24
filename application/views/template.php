@@ -46,17 +46,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($this->uri->segment(1) == '' || $this->uri->segment(1) == 'home') ? 'active' : ''; ?>" href="<?php echo base_url(); ?>">
+                        <a class="nav-link" href="<?php echo base_url(); ?>">
                             <i class="bi bi-house"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($this->uri->segment(1) == 'about') ? 'active' : ''; ?>" href="<?php echo base_url('about'); ?>">
+                        <a class="nav-link" href="<?php echo base_url('about'); ?>">
                             <i class="bi bi-info-circle"></i> About
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?php echo ($this->uri->segment(1) == 'contact') ? 'active' : ''; ?>" href="<?php echo base_url('contact'); ?>">
+                        <a class="nav-link" href="<?php echo base_url('contact'); ?>">
                             <i class="bi bi-envelope"></i> Contact
                         </a>
                     </li>
@@ -99,9 +99,7 @@
                     <div class="col-12">
                         <div class="alert alert-info" role="alert">
                             <h4 class="alert-heading">Welcome to ITE311-AMAR!</h4>
-                            <p>This is a Bootstrap-powered CodeIgniter application. The navigation bar above demonstrates various Bootstrap components and classes.</p>
-                            <hr>
-                            <p class="mb-0">You can customize this template by passing content from your controllers.</p>
+                           
                         </div>
                     </div>
                 </div>
