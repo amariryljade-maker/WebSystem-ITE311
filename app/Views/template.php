@@ -60,32 +60,7 @@
                             <i class="bi bi-envelope"></i> Contact
                         </a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-gear"></i> Services
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Web Development</a></li>
-                            <li><a class="dropdown-item" href="#">Mobile Apps</a></li>
-                            <li><a class="dropdown-item" href="#">Consulting</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Support</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-search"></i> Search
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-person"></i> Login
-                        </a>
-                    </li>
-                </ul>
+                   
             </div>
         </div>
     </nav>
