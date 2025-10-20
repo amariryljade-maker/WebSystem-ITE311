@@ -96,16 +96,7 @@ class Auth extends BaseController
             // SECURITY: CSRF Protection (CodeIgniter handles this automatically)
             // ============================================
             
-            // ============================================
-            // SECURITY: Rate Limiting for Registration
-            // ============================================
             $ipAddress = $this->request->getIPAddress();
-            $rateLimitCheck = $this->isRateLimited('registration_' . $ipAddress);
-            
-            if ($rateLimitCheck['locked']) {
-                session()->setFlashdata('error', $rateLimitCheck['message']);
-                return redirect()->back()->withInput();
-            }
             
             // ============================================
             // SECURITY: Enhanced Input Validation
@@ -151,9 +142,6 @@ class Auth extends BaseController
             ];
 
             if (!$this->validate($rules, $messages)) {
-                // Record failed validation attempt
-                $this->recordFailedAttempt('registration_' . $ipAddress);
-                
                 // Validation failed, show form with errors
                 $data = [
                     'title' => 'Register',
@@ -209,9 +197,6 @@ class Auth extends BaseController
                 $db->transComplete();
                 
                 if ($userId && $db->transStatus()) {
-                    // Clear rate limiting on successful registration
-                    $this->clearLoginAttempts('registration_' . $ipAddress);
-                    
                     // Log successful registration
                     log_message('info', "New user registered: {$email} with role: {$role}");
                     
@@ -222,9 +207,6 @@ class Auth extends BaseController
                     throw new \Exception('Failed to create user account');
                 }
             } catch (\Exception $e) {
-                // Record failed attempt
-                $this->recordFailedAttempt('registration_' . $ipAddress);
-                
                 // Log error
                 log_message('error', "Registration error: " . $e->getMessage());
                 
@@ -272,24 +254,7 @@ class Auth extends BaseController
             // SECURITY: CSRF Protection (Auto-handled by CodeIgniter)
             // ============================================
             
-            // ============================================
-            // SECURITY: Rate Limiting / Brute Force Protection
-            // ============================================
             $ipAddress = $this->request->getIPAddress();
-            $rateLimitCheck = $this->isRateLimited('login_' . $ipAddress);
-            
-            if ($rateLimitCheck['locked']) {
-                log_message('warning', "Login blocked due to rate limiting from IP: {$ipAddress}");
-                session()->setFlashdata('error', $rateLimitCheck['message']);
-                
-                $data = [
-                    'title' => 'Login',
-                    'validation' => null,
-                    'old_input' => [],
-                    'locked' => true
-                ];
-                return view('auth/login', $data);
-            }
             
             // ============================================
             // SECURITY: Input Validation
@@ -313,9 +278,6 @@ class Auth extends BaseController
             ];
 
             if (!$this->validate($rules, $messages)) {
-                // Record failed validation
-                $this->recordFailedAttempt('login_' . $ipAddress);
-                
                 // Validation failed, show form with errors
                 $data = [
                     'title' => 'Login',
@@ -335,7 +297,6 @@ class Auth extends BaseController
             // SECURITY: Validate Email Format
             // ============================================
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $this->recordFailedAttempt('login_' . $ipAddress);
                 session()->setFlashdata('error', 'Invalid email format.');
                 return redirect()->back();
             }
@@ -367,9 +328,6 @@ class Auth extends BaseController
                 // SECURITY: Successful Login
                 // ============================================
                 
-                // Clear failed attempts
-                $this->clearLoginAttempts('login_' . $ipAddress);
-                
                 // Create secure session
                 $sessionData = [
                     'user_id' => $user['id'],
@@ -400,14 +358,8 @@ class Auth extends BaseController
                 // SECURITY: Failed Login Handling
                 // ============================================
                 
-                // Record failed attempt
-                $this->recordFailedAttempt('login_' . $ipAddress);
-                
                 // Generic error message (don't reveal if email exists)
                 session()->setFlashdata('error', 'Invalid email or password.');
-                
-                // Add delay to slow down brute force attacks
-                sleep(2);
             }
         }
 
