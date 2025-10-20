@@ -74,3 +74,14 @@ $routes->group('student', function($routes) {
 // ============================================
 $routes->get('courses', 'Course::index');
 $routes->get('courses/view/(:num)', 'Course::view/$1');
+
+// ============================================
+// Course Enrollment (AJAX)
+// ============================================
+// Lab specification route (singular 'course')
+$routes->post('/course/enroll', 'Course::enroll');
+
+// Alternative routes (plural 'courses') for compatibility
+$routes->post('courses/enroll', 'Course::enroll');
+$routes->post('courses/unenroll', 'Course::unenroll');
+$routes->get('courses/enrollment-status', 'Course::getEnrollmentStatus');
