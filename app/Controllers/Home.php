@@ -35,4 +35,9 @@ class Home extends BaseController
     {
         return "Test method is working!";
     }
+
+    public function testDashboard()
+    {
+        return view('test_dashboard');
+    }
 }
