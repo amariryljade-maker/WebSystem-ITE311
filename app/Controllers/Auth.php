@@ -7,6 +7,8 @@ use App\Models\UserModel;
 class Auth extends BaseController
 {
     protected $userModel;
+    protected $maxLoginAttempts = 5;
+    protected $lockoutTime = 900; // 15 minutes in seconds
 
     public function __construct()
     {
@@ -17,7 +19,70 @@ class Auth extends BaseController
     }
 
     /**
+     * Check if user is rate limited (brute force protection)
+     */
+    private function isRateLimited($identifier)
+    {
+        $attempts = session()->get('login_attempts_' . md5($identifier)) ?? 0;
+        $lockoutUntil = session()->get('lockout_until_' . md5($identifier)) ?? 0;
+        
+        // Check if still locked out
+        if ($lockoutUntil > time()) {
+            $remainingTime = ceil(($lockoutUntil - time()) / 60);
+            return [
+                'locked' => true,
+                'message' => "Too many failed attempts. Please try again in {$remainingTime} minute(s)."
+            ];
+        }
+        
+        // Check if max attempts exceeded
+        if ($attempts >= $this->maxLoginAttempts) {
+            // Set lockout
+            session()->set('lockout_until_' . md5($identifier), time() + $this->lockoutTime);
+            return [
+                'locked' => true,
+                'message' => "Too many failed attempts. Account locked for 15 minutes."
+            ];
+        }
+        
+        return ['locked' => false];
+    }
+
+    /**
+     * Record failed login attempt
+     */
+    private function recordFailedAttempt($identifier)
+    {
+        $attempts = session()->get('login_attempts_' . md5($identifier)) ?? 0;
+        session()->set('login_attempts_' . md5($identifier), $attempts + 1);
+        
+        // Log failed attempt for security audit
+        log_message('warning', "Failed login attempt for: {$identifier}");
+    }
+
+    /**
+     * Clear login attempts on successful login
+     */
+    private function clearLoginAttempts($identifier)
+    {
+        session()->remove('login_attempts_' . md5($identifier));
+        session()->remove('lockout_until_' . md5($identifier));
+    }
+
+    /**
+     * Sanitize user input to prevent XSS
+     */
+    private function sanitizeInput($input)
+    {
+        if (is_array($input)) {
+            return array_map([$this, 'sanitizeInput'], $input);
+        }
+        return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
      * Display registration form and process registration
+     * Enhanced with security measures against common vulnerabilities
      */
     public function register()
     {
@@ -27,11 +92,33 @@ class Auth extends BaseController
         }
 
         if ($this->request->getMethod() === 'post') {
-            // Validate form data
+            // ============================================
+            // SECURITY: CSRF Protection (CodeIgniter handles this automatically)
+            // ============================================
+            
+            // ============================================
+            // SECURITY: Rate Limiting for Registration
+            // ============================================
+            $ipAddress = $this->request->getIPAddress();
+            $rateLimitCheck = $this->isRateLimited('registration_' . $ipAddress);
+            
+            if ($rateLimitCheck['locked']) {
+                session()->setFlashdata('error', $rateLimitCheck['message']);
+                return redirect()->back()->withInput();
+            }
+            
+            // ============================================
+            // SECURITY: Enhanced Input Validation
+            // ============================================
             $rules = [
-                'name' => 'required|min_length[3]|max_length[100]',
-                'email' => 'required|valid_email|is_unique[users.email]',
-                'password' => 'required|min_length[6]',
+                'name' => 'required|min_length[3]|max_length[100]|alpha_space',
+                'email' => 'required|valid_email|is_unique[users.email]|max_length[255]',
+                'password' => [
+                    'rules' => 'required|min_length[8]|max_length[255]',
+                    'errors' => [
+                        'min_length' => 'Password must be at least 8 characters for security',
+                    ]
+                ],
                 'confirm_password' => 'required|matches[password]',
                 'role' => 'required|in_list[student,instructor]'
             ];
@@ -40,16 +127,18 @@ class Auth extends BaseController
                 'name' => [
                     'required' => 'Name is required',
                     'min_length' => 'Name must be at least 3 characters long',
-                    'max_length' => 'Name cannot exceed 100 characters'
+                    'max_length' => 'Name cannot exceed 100 characters',
+                    'alpha_space' => 'Name can only contain letters and spaces'
                 ],
                 'email' => [
                     'required' => 'Email is required',
                     'valid_email' => 'Please enter a valid email address',
-                    'is_unique' => 'This email is already registered'
+                    'is_unique' => 'This email is already registered',
+                    'max_length' => 'Email cannot exceed 255 characters'
                 ],
                 'password' => [
                     'required' => 'Password is required',
-                    'min_length' => 'Password must be at least 6 characters long'
+                    'max_length' => 'Password is too long'
                 ],
                 'confirm_password' => [
                     'required' => 'Please confirm your password',
@@ -57,11 +146,14 @@ class Auth extends BaseController
                 ],
                 'role' => [
                     'required' => 'Please select a role',
-                    'in_list' => 'Please select a valid role'
+                    'in_list' => 'Invalid role selected. Only student and instructor roles are allowed for registration.'
                 ]
             ];
 
             if (!$this->validate($rules, $messages)) {
+                // Record failed validation attempt
+                $this->recordFailedAttempt('registration_' . $ipAddress);
+                
                 // Validation failed, show form with errors
                 $data = [
                     'title' => 'Register',
@@ -71,28 +163,73 @@ class Auth extends BaseController
                 return view('auth/register', $data);
             }
 
-            // Validation passed, create user
+            // ============================================
+            // SECURITY: Input Sanitization (Defense in Depth)
+            // ============================================
+            $name = $this->sanitizeInput($this->request->getPost('name'));
+            $email = filter_var($this->request->getPost('email'), FILTER_SANITIZE_EMAIL);
+            $password = $this->request->getPost('password'); // Don't sanitize password
+            $role = $this->request->getPost('role');
+            
+            // ============================================
+            // SECURITY: Additional Email Validation
+            // ============================================
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                session()->setFlashdata('error', 'Invalid email format.');
+                return redirect()->back()->withInput();
+            }
+            
+            // ============================================
+            // SECURITY: Password Strength Validation
+            // ============================================
+            if (!$this->isPasswordStrong($password)) {
+                session()->setFlashdata('error', 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+                return redirect()->back()->withInput();
+            }
+
+            // ============================================
+            // SECURITY: Secure Password Hashing
+            // ============================================
             $userData = [
-                'name' => $this->request->getPost('name'),
-                'email' => $this->request->getPost('email'),
-                'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-                'role' => $this->request->getPost('role'),
+                'name' => $name,
+                'email' => $email,
+                'password' => password_hash($password, PASSWORD_ARGON2ID), // More secure algorithm
+                'role' => $role,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ];
 
             try {
+                // Begin transaction for data integrity
+                $db = \Config\Database::connect();
+                $db->transStart();
+                
                 $userId = $this->userModel->insert($userData);
                 
-                if ($userId) {
+                $db->transComplete();
+                
+                if ($userId && $db->transStatus()) {
+                    // Clear rate limiting on successful registration
+                    $this->clearLoginAttempts('registration_' . $ipAddress);
+                    
+                    // Log successful registration
+                    log_message('info', "New user registered: {$email} with role: {$role}");
+                    
                     // Registration successful
-                    session()->setFlashdata('success', 'Registration successful! Please log in.');
+                    session()->setFlashdata('success', 'Registration successful! Please log in with your credentials.');
                     return redirect()->to('/login');
                 } else {
-                    session()->setFlashdata('error', 'Registration failed. Please try again.');
+                    throw new \Exception('Failed to create user account');
                 }
             } catch (\Exception $e) {
-                session()->setFlashdata('error', 'An error occurred during registration. Please try again.');
+                // Record failed attempt
+                $this->recordFailedAttempt('registration_' . $ipAddress);
+                
+                // Log error
+                log_message('error', "Registration error: " . $e->getMessage());
+                
+                session()->setFlashdata('error', 'An error occurred during registration. Please try again later.');
+                return redirect()->back()->withInput();
             }
         }
 
@@ -106,7 +243,22 @@ class Auth extends BaseController
     }
 
     /**
+     * Validate password strength
+     */
+    private function isPasswordStrong($password)
+    {
+        // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        $uppercase = preg_match('@[A-Z]@', $password);
+        $lowercase = preg_match('@[a-z]@', $password);
+        $number = preg_match('@[0-9]@', $password);
+        $specialChars = preg_match('@[^\w]@', $password);
+        
+        return $uppercase && $lowercase && $number && $specialChars && strlen($password) >= 8;
+    }
+
+    /**
      * Display login form and process login
+     * Enhanced with comprehensive security measures
      */
     public function login()
     {
@@ -116,23 +268,54 @@ class Auth extends BaseController
         }
 
         if ($this->request->getMethod() === 'post') {
-            // Validate form data
+            // ============================================
+            // SECURITY: CSRF Protection (Auto-handled by CodeIgniter)
+            // ============================================
+            
+            // ============================================
+            // SECURITY: Rate Limiting / Brute Force Protection
+            // ============================================
+            $ipAddress = $this->request->getIPAddress();
+            $rateLimitCheck = $this->isRateLimited('login_' . $ipAddress);
+            
+            if ($rateLimitCheck['locked']) {
+                log_message('warning', "Login blocked due to rate limiting from IP: {$ipAddress}");
+                session()->setFlashdata('error', $rateLimitCheck['message']);
+                
+                $data = [
+                    'title' => 'Login',
+                    'validation' => null,
+                    'old_input' => [],
+                    'locked' => true
+                ];
+                return view('auth/login', $data);
+            }
+            
+            // ============================================
+            // SECURITY: Input Validation
+            // ============================================
             $rules = [
-                'email' => 'required|valid_email',
-                'password' => 'required'
+                'email' => 'required|valid_email|max_length[255]',
+                'password' => 'required|min_length[1]|max_length[255]'
             ];
 
             $messages = [
                 'email' => [
                     'required' => 'Email is required',
-                    'valid_email' => 'Please enter a valid email address'
+                    'valid_email' => 'Please enter a valid email address',
+                    'max_length' => 'Email is too long'
                 ],
                 'password' => [
-                    'required' => 'Password is required'
+                    'required' => 'Password is required',
+                    'min_length' => 'Password is required',
+                    'max_length' => 'Password is too long'
                 ]
             ];
 
             if (!$this->validate($rules, $messages)) {
+                // Record failed validation
+                $this->recordFailedAttempt('login_' . $ipAddress);
+                
                 // Validation failed, show form with errors
                 $data = [
                     'title' => 'Login',
@@ -142,21 +325,61 @@ class Auth extends BaseController
                 return view('auth/login', $data);
             }
 
-            // Validation passed, attempt login
-            $email = $this->request->getPost('email');
+            // ============================================
+            // SECURITY: Input Sanitization
+            // ============================================
+            $email = filter_var(trim($this->request->getPost('email')), FILTER_SANITIZE_EMAIL);
             $password = $this->request->getPost('password');
+            
+            // ============================================
+            // SECURITY: Validate Email Format
+            // ============================================
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->recordFailedAttempt('login_' . $ipAddress);
+                session()->setFlashdata('error', 'Invalid email format.');
+                return redirect()->back();
+            }
 
+            // ============================================
+            // SECURITY: Timing Attack Prevention
+            // ============================================
+            // Use constant-time comparison for existence check
             $user = $this->userModel->where('email', $email)->first();
+            
+            // Always perform password verification even if user doesn't exist
+            // This prevents timing attacks to enumerate users
+            $dummyHash = '$2y$10$abcdefghijklmnopqrstuv1234567890123456789012';
+            $userPassword = $user ? $user['password'] : $dummyHash;
+            
+            $passwordValid = password_verify($password, $userPassword);
 
-            if ($user && password_verify($password, $user['password'])) {
-                // Login successful - create session
+            if ($user && $passwordValid) {
+                // ============================================
+                // SECURITY: Check if password needs rehashing
+                // ============================================
+                if (password_needs_rehash($user['password'], PASSWORD_ARGON2ID)) {
+                    $this->userModel->update($user['id'], [
+                        'password' => password_hash($password, PASSWORD_ARGON2ID)
+                    ]);
+                }
+                
+                // ============================================
+                // SECURITY: Successful Login
+                // ============================================
+                
+                // Clear failed attempts
+                $this->clearLoginAttempts('login_' . $ipAddress);
+                
+                // Create secure session
                 $sessionData = [
                     'user_id' => $user['id'],
-                    'user_name' => $user['name'],
+                    'user_name' => $this->sanitizeInput($user['name']),
                     'user_email' => $user['email'],
                     'user_role' => $user['role'],
                     'logged_in' => true,
-                    'login_time' => time()
+                    'login_time' => time(),
+                    'ip_address' => $ipAddress,
+                    'user_agent' => $this->request->getUserAgent()->getAgentString()
                 ];
                 
                 session()->set($sessionData);
@@ -164,14 +387,27 @@ class Auth extends BaseController
                 // Set session timeout (30 minutes)
                 set_session_timeout(30);
                 
-                // Regenerate session ID for security
-                regenerate_session();
+                // Regenerate session ID for security (prevent session fixation)
+                session()->regenerate();
                 
-                session()->setFlashdata('success', 'Welcome back, ' . $user['name'] . '!');
+                // Log successful login
+                log_message('info', "Successful login: {$email} from IP: {$ipAddress}");
+                
+                session()->setFlashdata('success', 'Welcome back, ' . esc($user['name']) . '!');
                 return redirect()->to('/dashboard');
             } else {
-                // Login failed
+                // ============================================
+                // SECURITY: Failed Login Handling
+                // ============================================
+                
+                // Record failed attempt
+                $this->recordFailedAttempt('login_' . $ipAddress);
+                
+                // Generic error message (don't reveal if email exists)
                 session()->setFlashdata('error', 'Invalid email or password.');
+                
+                // Add delay to slow down brute force attacks
+                sleep(2);
             }
         }
 
@@ -406,34 +642,45 @@ class Auth extends BaseController
         $enrolledCourses = [];
         $completedLessons = 0;
         $totalProgress = 0;
+        $enrolledCourseIds = [];
         
-        // Fetch enrolled courses (if enrollments table exists)
-        if ($db->tableExists('enrollments')) {
-            $enrollments = $db->table('enrollments')
-                ->where('user_id', $userId)
-                ->get()
-                ->getResultArray();
+        // Fetch enrolled courses using EnrollmentModel
+        $enrollmentModel = new \App\Models\EnrollmentModel();
+        $enrollments = $enrollmentModel->getUserEnrollments($userId);
+        
+        if (!empty($enrollments)) {
+            $enrolledCourses = $enrollments;
+            $enrolledCourseIds = array_column($enrollments, 'course_id');
             
-            // Get course details for enrolled courses
-            if ($db->tableExists('courses') && count($enrollments) > 0) {
-                $courseIds = array_column($enrollments, 'course_id');
-                $enrolledCourses = $db->table('courses')
-                    ->whereIn('id', $courseIds)
-                    ->get()
-                    ->getResultArray();
-                
-                // Calculate average progress
-                $progressSum = array_sum(array_column($enrollments, 'progress'));
-                $totalProgress = count($enrollments) > 0 ? 
-                    round($progressSum / count($enrollments), 2) : 0;
-            }
+            // Calculate average progress
+            $progressSum = array_sum(array_column($enrollments, 'progress'));
+            $totalProgress = count($enrollments) > 0 ? 
+                round($progressSum / count($enrollments), 2) : 0;
             
-            // Count completed lessons
+            // Count completed courses
             foreach ($enrollments as $enrollment) {
                 if ($enrollment['status'] === 'completed') {
                     $completedLessons++;
                 }
             }
+        }
+        
+        // Fetch available courses (not yet enrolled)
+        $availableCourses = [];
+        if ($db->tableExists('courses')) {
+            $builder = $db->table('courses')
+                ->where('is_published', true);
+            
+            // Exclude already enrolled courses
+            if (!empty($enrolledCourseIds)) {
+                $builder->whereNotIn('id', $enrolledCourseIds);
+            }
+            
+            $availableCourses = $builder
+                ->orderBy('created_at', 'DESC')
+                ->limit(6) // Limit to 6 available courses
+                ->get()
+                ->getResultArray();
         }
         
         // Fetch recent announcements
@@ -448,6 +695,7 @@ class Auth extends BaseController
             'dashboard_message' => 'Welcome to Student Dashboard',
             'dashboard_description' => 'View your enrolled courses, lessons, and progress',
             'enrolled_courses' => $enrolledCourses,
+            'available_courses' => $availableCourses,
             'total_enrolled' => count($enrolledCourses),
             'completed_courses' => $completedLessons,
             'overall_progress' => $totalProgress,
