@@ -204,10 +204,14 @@ class Auth extends BaseController
     }
 
     /**
-     * Protected dashboard page
+     * Protected dashboard page with enhanced authorization and role-specific data
      */
     public function dashboard()
     {
+        // ============================================
+        // STEP 1: AUTHORIZATION CHECK
+        // ============================================
+        
         // Check if user is logged in
         if (!is_user_logged_in()) {
             session()->setFlashdata('error', 'Please log in to access the dashboard.');
@@ -219,46 +223,237 @@ class Auth extends BaseController
             return; // logout_user() already called in check_session_timeout()
         }
 
-        // Get user data
+        // Get user ID from session
         $userId = get_user_id();
+        
+        // Verify user ID exists
+        if (!$userId) {
+            session()->setFlashdata('error', 'Invalid session. Please log in again.');
+            return redirect()->to('/login');
+        }
+
+        // Get user data from database
         $user = $this->userModel->find($userId);
 
+        // Verify user exists in database
         if (!$user) {
+            session()->setFlashdata('error', 'User account not found. Please contact administrator.');
             logout_user();
-            return;
+            return redirect()->to('/login');
+        }
+
+        // Verify user has a valid role
+        $validRoles = ['admin', 'teacher', 'instructor', 'student'];
+        if (!in_array($user['role'], $validRoles)) {
+            session()->setFlashdata('error', 'Invalid user role. Access denied.');
+            logout_user();
+            return redirect()->to('/login');
         }
 
         // Update session timeout on activity
         set_session_timeout(30);
 
-        // Prepare dashboard data based on user role
+        // Log dashboard access (optional security audit)
+        log_message('info', 'User ' . $user['email'] . ' accessed dashboard with role: ' . $user['role']);
+
+        // ============================================
+        // STEP 2: PREPARE BASE DASHBOARD DATA
+        // ============================================
+        
         $dashboardData = [
-            'title' => 'Dashboard',
+            'title' => 'Dashboard - ' . ucfirst($user['role']),
             'user' => $user,
-            'user_role' => $user['role']
+            'user_role' => $user['role'],
+            'session_start' => session()->get('login_time'),
+            'current_time' => time(),
         ];
 
-        // Add role-specific data
+        // ============================================
+        // STEP 3: FETCH ROLE-SPECIFIC DATA FROM DATABASE
+        // ============================================
+        
         switch ($user['role']) {
             case 'admin':
-                // Admin dashboard data
-                $dashboardData['total_users'] = $this->userModel->countAll();
-                $dashboardData['total_students'] = $this->userModel->where('role', 'student')->countAllResults();
-                $dashboardData['total_instructors'] = $this->userModel->where('role', 'instructor')->countAllResults();
+                // Admin dashboard - Fetch comprehensive system statistics
+                $dashboardData = array_merge($dashboardData, $this->getAdminDashboardData($userId));
                 break;
                 
             case 'instructor':
-                // Instructor dashboard data
-                // Add instructor-specific data here
+            case 'teacher':
+                // Teacher/Instructor dashboard - Fetch teaching-related data
+                $dashboardData = array_merge($dashboardData, $this->getTeacherDashboardData($userId));
                 break;
                 
             case 'student':
-                // Student dashboard data
-                // Add student-specific data here
+                // Student dashboard - Fetch learning-related data
+                $dashboardData = array_merge($dashboardData, $this->getStudentDashboardData($userId));
+                break;
+                
+            default:
+                // Default dashboard for unrecognized roles (fallback)
+                $dashboardData['dashboard_message'] = 'Welcome to Dashboard';
+                $dashboardData['dashboard_description'] = 'Your personalized learning space';
                 break;
         }
 
+        // ============================================
+        // STEP 4: PASS DATA TO VIEW
+        // ============================================
+        
         return view('auth/dashboard', $dashboardData);
+    }
+
+    /**
+     * Get Admin-specific dashboard data from database
+     */
+    private function getAdminDashboardData($userId)
+    {
+        // Fetch system-wide statistics
+        $totalUsers = $this->userModel->countAll();
+        $totalStudents = $this->userModel->where('role', 'student')->countAllResults();
+        $totalInstructors = $this->userModel->where('role', 'instructor')->countAllResults();
+        $totalTeachers = $this->userModel->where('role', 'teacher')->countAllResults();
+        $totalAdmins = $this->userModel->where('role', 'admin')->countAllResults();
+        
+        // Fetch recent users (last 5 registered)
+        $recentUsers = $this->userModel
+            ->orderBy('created_at', 'DESC')
+            ->limit(5)
+            ->find();
+        
+        // Fetch announcements count
+        $db = \Config\Database::connect();
+        $announcementsCount = $db->table('announcements')
+            ->where('is_active', true)
+            ->countAllResults();
+        
+        // Fetch courses count if courses table exists
+        $coursesCount = 0;
+        if ($db->tableExists('courses')) {
+            $coursesCount = $db->table('courses')->countAllResults();
+        }
+        
+        return [
+            'dashboard_message' => 'Welcome to Admin Dashboard',
+            'dashboard_description' => 'Manage users, courses, and system settings',
+            'total_users' => $totalUsers,
+            'total_students' => $totalStudents,
+            'total_instructors' => $totalInstructors,
+            'total_teachers' => $totalTeachers,
+            'total_admins' => $totalAdmins,
+            'recent_users' => $recentUsers,
+            'total_announcements' => $announcementsCount,
+            'total_courses' => $coursesCount,
+            'active_users' => $totalUsers, // Could be enhanced with last_login tracking
+        ];
+    }
+
+    /**
+     * Get Teacher/Instructor-specific dashboard data from database
+     */
+    private function getTeacherDashboardData($userId)
+    {
+        $db = \Config\Database::connect();
+        
+        // Initialize default values
+        $myCourses = [];
+        $totalStudents = 0;
+        $totalLessons = 0;
+        
+        // Fetch courses taught by this instructor (if courses table exists)
+        if ($db->tableExists('courses')) {
+            $myCourses = $db->table('courses')
+                ->where('instructor_id', $userId)
+                ->get()
+                ->getResultArray();
+            
+            // Count total students enrolled in instructor's courses
+            if ($db->tableExists('enrollments') && count($myCourses) > 0) {
+                $courseIds = array_column($myCourses, 'id');
+                $totalStudents = $db->table('enrollments')
+                    ->whereIn('course_id', $courseIds)
+                    ->countAllResults();
+            }
+            
+            // Count total lessons created by this instructor
+            if ($db->tableExists('lessons') && count($myCourses) > 0) {
+                $courseIds = array_column($myCourses, 'id');
+                $totalLessons = $db->table('lessons')
+                    ->whereIn('course_id', $courseIds)
+                    ->countAllResults();
+            }
+        }
+        
+        return [
+            'dashboard_message' => 'Welcome to Teacher Dashboard',
+            'dashboard_description' => 'Manage your courses, lessons, and student assessments',
+            'my_courses' => $myCourses,
+            'total_courses' => count($myCourses),
+            'total_students' => $totalStudents,
+            'total_lessons' => $totalLessons,
+            'pending_submissions' => 0, // Could be enhanced with submissions tracking
+        ];
+    }
+
+    /**
+     * Get Student-specific dashboard data from database
+     */
+    private function getStudentDashboardData($userId)
+    {
+        $db = \Config\Database::connect();
+        
+        // Initialize default values
+        $enrolledCourses = [];
+        $completedLessons = 0;
+        $totalProgress = 0;
+        
+        // Fetch enrolled courses (if enrollments table exists)
+        if ($db->tableExists('enrollments')) {
+            $enrollments = $db->table('enrollments')
+                ->where('user_id', $userId)
+                ->get()
+                ->getResultArray();
+            
+            // Get course details for enrolled courses
+            if ($db->tableExists('courses') && count($enrollments) > 0) {
+                $courseIds = array_column($enrollments, 'course_id');
+                $enrolledCourses = $db->table('courses')
+                    ->whereIn('id', $courseIds)
+                    ->get()
+                    ->getResultArray();
+                
+                // Calculate average progress
+                $progressSum = array_sum(array_column($enrollments, 'progress'));
+                $totalProgress = count($enrollments) > 0 ? 
+                    round($progressSum / count($enrollments), 2) : 0;
+            }
+            
+            // Count completed lessons
+            foreach ($enrollments as $enrollment) {
+                if ($enrollment['status'] === 'completed') {
+                    $completedLessons++;
+                }
+            }
+        }
+        
+        // Fetch recent announcements
+        $recentAnnouncements = $db->table('announcements')
+            ->where('is_active', true)
+            ->orderBy('date_posted', 'DESC')
+            ->limit(3)
+            ->get()
+            ->getResultArray();
+        
+        return [
+            'dashboard_message' => 'Welcome to Student Dashboard',
+            'dashboard_description' => 'View your enrolled courses, lessons, and progress',
+            'enrolled_courses' => $enrolledCourses,
+            'total_enrolled' => count($enrolledCourses),
+            'completed_courses' => $completedLessons,
+            'overall_progress' => $totalProgress,
+            'recent_announcements' => $recentAnnouncements,
+            'pending_quizzes' => 0, // Could be enhanced with quiz tracking
+        ];
     }
 
     /**
