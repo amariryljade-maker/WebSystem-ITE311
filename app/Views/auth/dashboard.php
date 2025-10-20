@@ -487,38 +487,207 @@
         <!-- Student Content -->
         <div class="row g-4">
             <div class="col-lg-8">
-                <!-- My Enrolled Courses -->
+                <!-- ============================================ -->
+                <!-- SECTION 1: ENROLLED COURSES (Using EnrollmentModel) -->
+                <!-- ============================================ -->
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-book me-2"></i>My Enrolled Courses</h5>
-                        <a href="<?= base_url('announcements') ?>" class="btn btn-sm btn-warning">
-                            <i class="bi bi-search me-1"></i>Browse
-                        </a>
+                    <div class="card-header bg-warning bg-opacity-10 border-bottom border-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-warning">
+                                <i class="bi bi-book-half me-2"></i>My Enrolled Courses
+                            </h5>
+                            <span class="badge bg-warning"><?= count($enrolled_courses ?? []) ?> Courses</span>
+                        </div>
                     </div>
                     <div class="card-body">
                         <?php if (empty($enrolled_courses)): ?>
-                            <!-- No Courses -->
+                            <!-- Empty State -->
                             <div class="text-center py-5">
-                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
-                                    <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+                                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                                    <i class="bi bi-book text-warning" style="font-size: 3rem;"></i>
                                 </div>
-                                <h5 class="text-muted mb-3">No Courses Yet</h5>
-                                <p class="text-muted mb-4">Browse available courses to start learning!</p>
-                                <a href="<?= base_url('announcements') ?>" class="btn btn-warning">
-                                    <i class="bi bi-search me-2"></i>Browse Courses
+                                <h5 class="text-muted mb-3">No Enrolled Courses</h5>
+                                <p class="text-muted mb-4">You haven't enrolled in any courses yet. Browse available courses below to start your learning journey!</p>
+                                <a href="#available-courses" class="btn btn-warning">
+                                    <i class="bi bi-arrow-down-circle me-2"></i>See Available Courses
                                 </a>
                             </div>
                         <?php else: ?>
-                            <!-- Course List -->
-                            <?php foreach ($enrolled_courses as $course): ?>
-                                <div class="mb-3">
-                                    <h6><?= esc($course['title']) ?></h6>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar bg-success" style="width: 0%"></div>
+                            <!-- Bootstrap List Group: Enrolled Courses -->
+                            <div class="list-group list-group-flush">
+                                <?php foreach ($enrolled_courses as $index => $enrollment): ?>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-start">
+                                            <!-- Course Thumbnail -->
+                                            <div class="flex-shrink-0 me-3">
+                                                <?php if (!empty($enrollment['thumbnail'])): ?>
+                                                    <img src="<?= base_url('uploads/' . $enrollment['thumbnail']) ?>" 
+                                                         alt="<?= esc($enrollment['course_title']) ?>" 
+                                                         class="rounded" 
+                                                         style="width: 80px; height: 80px; object-fit: cover;">
+                                                <?php else: ?>
+                                                    <div class="bg-warning bg-opacity-25 rounded d-flex align-items-center justify-content-center" 
+                                                         style="width: 80px; height: 80px;">
+                                                        <i class="bi bi-book text-warning" style="font-size: 2rem;"></i>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <!-- Course Info -->
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">
+                                                            <a href="<?= base_url('courses/view/' . $enrollment['course_id']) ?>" 
+                                                               class="text-decoration-none text-dark fw-bold">
+                                                                <?= esc($enrollment['course_title'] ?? 'Course ' . $enrollment['course_id']) ?>
+                                                            </a>
+                                                        </h6>
+                                                        <div class="mb-2">
+                                                            <?php if (!empty($enrollment['level'])): ?>
+                                                                <span class="badge bg-info text-dark me-2">
+                                                                    <?= ucfirst($enrollment['level']) ?>
+                                                                </span>
+                                                            <?php endif; ?>
+                                                            <span class="badge bg-<?= $enrollment['status'] === 'completed' ? 'success' : 'primary' ?>">
+                                                                <?= ucfirst($enrollment['status']) ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="h5 mb-0 text-warning fw-bold"><?= number_format($enrollment['progress'], 1) ?>%</div>
+                                                        <small class="text-muted">Progress</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Progress Bar -->
+                                                <div class="progress mb-2" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" 
+                                                         role="progressbar" 
+                                                         style="width: <?= $enrollment['progress'] ?>%"
+                                                         aria-valuenow="<?= $enrollment['progress'] ?>" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar me-1"></i>
+                                                        Enrolled: <?= date('M d, Y', strtotime($enrollment['enrollment_date'])) ?>
+                                                    </small>
+                                                    <div>
+                                                        <a href="<?= base_url('student/courses/' . $enrollment['course_id']) ?>" 
+                                                           class="btn btn-sm btn-warning me-2">
+                                                            <i class="bi bi-play-circle me-1"></i>Continue
+                                                        </a>
+                                                        <?php if ($enrollment['status'] !== 'completed'): ?>
+                                                            <button class="btn btn-sm btn-outline-danger" 
+                                                                    onclick="unenrollCourse(<?= $enrollment['course_id'] ?>)">
+                                                                <i class="bi bi-x-circle"></i>
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <small class="text-muted">0% Complete</small>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- SECTION 2: AVAILABLE COURSES (Not Enrolled) -->
+                <!-- ============================================ -->
+                <div class="card border-0 shadow-sm mb-4" id="available-courses">
+                    <div class="card-header bg-success bg-opacity-10 border-bottom border-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-success">
+                                <i class="bi bi-search me-2"></i>Available Courses
+                            </h5>
+                            <a href="<?= base_url('courses') ?>" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-grid me-1"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($available_courses)): ?>
+                            <!-- No Available Courses -->
+                            <div class="text-center py-4">
+                                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                                <h6 class="text-muted mt-3">All Caught Up!</h6>
+                                <p class="text-muted mb-0">You're enrolled in all available courses.</p>
+                            </div>
+                        <?php else: ?>
+                            <!-- Bootstrap Cards: Available Courses -->
+                            <div class="row g-3">
+                                <?php foreach ($available_courses as $course): ?>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border hover-shadow">
+                                            <?php if (!empty($course['thumbnail'])): ?>
+                                                <img src="<?= base_url('uploads/' . $course['thumbnail']) ?>" 
+                                                     class="card-img-top" 
+                                                     alt="<?= esc($course['title']) ?>"
+                                                     style="height: 150px; object-fit: cover;">
+                                            <?php else: ?>
+                                                <div class="bg-success bg-opacity-25 d-flex align-items-center justify-content-center" 
+                                                     style="height: 150px;">
+                                                    <i class="bi bi-book text-success" style="font-size: 3rem;"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                            
+                                            <div class="card-body">
+                                                <h6 class="card-title mb-2"><?= esc($course['title']) ?></h6>
+                                                <p class="card-text small text-muted mb-3">
+                                                    <?= substr(esc($course['short_description'] ?? $course['description'] ?? 'No description available'), 0, 100) ?>...
+                                                </p>
+                                                
+                                                <div class="mb-3">
+                                                    <?php if (!empty($course['level'])): ?>
+                                                        <span class="badge bg-info text-dark me-2">
+                                                            <?= ucfirst($course['level']) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <?php if ($course['is_featured']): ?>
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="bi bi-star-fill"></i> Featured
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                
+                                                <?php if ($course['price'] > 0): ?>
+                                                    <div class="mb-2">
+                                                        <strong class="text-success">$<?= number_format($course['price'], 2) ?></strong>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="mb-2">
+                                                        <span class="badge bg-success">FREE</span>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <div class="card-footer bg-white border-top-0">
+                                                <button class="btn btn-success btn-sm w-100 enroll-btn" 
+                                                        data-course-id="<?= $course['id'] ?>"
+                                                        data-course-title="<?= esc($course['title']) ?>"
+                                                        onclick="enrollInCourse(this)">
+                                                    <i class="bi bi-person-plus me-2"></i>Enroll Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <?php if (count($available_courses) >= 6): ?>
+                                <div class="text-center mt-4">
+                                    <a href="<?= base_url('courses') ?>" class="btn btn-outline-success">
+                                        <i class="bi bi-grid-3x3-gap me-2"></i>View All Courses
+                                    </a>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -640,6 +809,23 @@
         transform: translateY(-5px);
         box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
     }
+
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+    }
+
+    .list-group-item {
+        transition: background-color 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
 </style>
 
 <script>
@@ -683,6 +869,330 @@ document.addEventListener('click', function() {
 document.addEventListener('keypress', function() {
     sessionStartTime = Date.now();
 });
+
+// ============================================
+// JQUERY AJAX ENROLLMENT IMPLEMENTATION
+// ============================================
+
+// Include jQuery if not already loaded
+if (typeof jQuery === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+    script.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+}
+
+// Wait for jQuery to load
+$(document).ready(function() {
+    
+    /**
+     * AJAX Enrollment Function using jQuery
+     * Listens for click on Enroll buttons
+     */
+    $('.enroll-btn').on('click', function(e) {
+        // ============================================
+        // STEP 1: Prevent default form submission
+        // ============================================
+        e.preventDefault();
+        
+        const $button = $(this);
+        const courseId = $button.data('course-id');
+        const courseTitle = $button.data('course-title');
+        const originalContent = $button.html();
+        
+        // Disable button and show loading state
+        $button.prop('disabled', true);
+        $button.html('<span class="spinner-border spinner-border-sm me-2"></span>Enrolling...');
+        
+        // ============================================
+        // STEP 2: Use $.post() to send course_id to /courses/enroll
+        // ============================================
+        $.post({
+            url: '<?= base_url('courses/enroll') ?>',
+            data: {
+                course_id: courseId,
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+            },
+            dataType: 'json',
+            
+            // ============================================
+            // STEP 3: Handle successful response
+            // ============================================
+            success: function(response) {
+                if (response.success) {
+                    // ============================================
+                    // STEP 3a: Display Bootstrap alert message
+                    // ============================================
+                    showBootstrapAlert(response.message, 'success', courseTitle);
+                    
+                    // ============================================
+                    // STEP 3b: Hide/Disable the Enroll button
+                    // ============================================
+                    $button.fadeOut(300, function() {
+                        $(this).replaceWith(`
+                            <button class="btn btn-secondary btn-sm w-100" disabled>
+                                <i class="bi bi-check-circle me-2"></i>Enrolled
+                            </button>
+                        `);
+                    });
+                    
+                    // ============================================
+                    // STEP 3c: Update Enrolled Courses list dynamically
+                    // ============================================
+                    setTimeout(function() {
+                        updateEnrolledCoursesList(response, courseTitle);
+                    }, 500);
+                    
+                    // Update statistics
+                    updateEnrollmentStats();
+                    
+                } else {
+                    // Handle enrollment failure
+                    showBootstrapAlert(response.message, 'danger');
+                    
+                    // Re-enable button
+                    $button.prop('disabled', false);
+                    $button.html(originalContent);
+                    
+                    // Redirect if needed (e.g., to login)
+                    if (response.redirect) {
+                        setTimeout(function() {
+                            window.location.href = response.redirect;
+                        }, 2000);
+                    }
+                }
+            },
+            
+            // ============================================
+            // Handle errors
+            // ============================================
+            error: function(xhr, status, error) {
+                console.error('Enrollment error:', error);
+                showBootstrapAlert('An error occurred. Please try again.', 'danger');
+                
+                // Re-enable button
+                $button.prop('disabled', false);
+                $button.html(originalContent);
+            }
+        });
+    });
+    
+    /**
+     * Display Bootstrap alert message
+     */
+    function showBootstrapAlert(message, type = 'info', courseTitle = '') {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert" id="enrollment-alert">
+                <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'danger' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
+                <strong>${type === 'success' ? 'Success!' : type === 'danger' ? 'Error!' : 'Info'}</strong> ${message}
+                ${courseTitle ? `<br><small>Course: ${courseTitle}</small>` : ''}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Remove existing alerts
+        $('#enrollment-alert').remove();
+        
+        // Add new alert at the top of available courses section
+        $('#available-courses').prepend(alertHtml);
+        
+        // Scroll to alert
+        $('html, body').animate({
+            scrollTop: $('#enrollment-alert').offset().top - 100
+        }, 500);
+        
+        // Auto-dismiss after 8 seconds
+        setTimeout(function() {
+            $('#enrollment-alert').fadeOut(500, function() {
+                $(this).remove();
+            });
+        }, 8000);
+    }
+    
+    /**
+     * Update enrolled courses list dynamically without page reload
+     */
+    function updateEnrolledCoursesList(enrollmentData, courseTitle) {
+        const enrolledSection = $('.list-group');
+        
+        // If enrolled courses section is empty (showing empty state)
+        if ($('.list-group').length === 0) {
+            // Remove empty state and create list group
+            const emptyState = $('.text-center.py-5');
+            if (emptyState.length > 0) {
+                emptyState.fadeOut(300, function() {
+                    $(this).parent().html(`
+                        <div class="list-group list-group-flush">
+                            ${createEnrolledCourseItem(enrollmentData, courseTitle)}
+                        </div>
+                    `);
+                });
+            }
+        } else {
+            // Prepend new course to existing list
+            const newCourseHtml = createEnrolledCourseItem(enrollmentData, courseTitle);
+            enrolledSection.prepend(newCourseHtml);
+            
+            // Animate the new item
+            enrolledSection.find('.list-group-item:first')
+                .hide()
+                .slideDown(400)
+                .css('background-color', '#d1e7dd')
+                .animate({backgroundColor: 'transparent'}, 2000);
+        }
+        
+        // Update course count badge
+        updateCourseCountBadge();
+    }
+    
+    /**
+     * Create HTML for a new enrolled course item
+     */
+    function createEnrolledCourseItem(data, courseTitle) {
+        return `
+            <div class="list-group-item border-0 px-0 py-3">
+                <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-warning bg-opacity-25 rounded d-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-book text-warning" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-bold">${courseTitle}</h6>
+                                <div class="mb-2">
+                                    <span class="badge bg-primary">Active</span>
+                                    <span class="badge bg-success ms-2">
+                                        <i class="bi bi-star-fill"></i> New
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="h5 mb-0 text-warning fw-bold">0.0%</div>
+                                <small class="text-muted">Progress</small>
+                            </div>
+                        </div>
+                        <div class="progress mb-2" style="height: 10px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>
+                                Enrolled: ${data.enrollment_date || 'Just now'}
+                            </small>
+                            <div>
+                                <a href="<?= base_url('student/courses/') ?>${data.enrollment_id || ''}" 
+                                   class="btn btn-sm btn-warning me-2">
+                                    <i class="bi bi-play-circle me-1"></i>Start Learning
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * Update course count badge
+     */
+    function updateCourseCountBadge() {
+        const count = $('.list-group .list-group-item').length;
+        $('.card-header .badge.bg-warning').text(count + ' Courses');
+    }
+    
+    /**
+     * Update enrollment statistics dynamically
+     */
+    function updateEnrollmentStats() {
+        // Update total enrolled count
+        const enrolledCount = $('.list-group .list-group-item').length;
+        
+        // Find and update the statistics card
+        $('.col-lg-3.col-md-6').each(function() {
+            const $card = $(this);
+            if ($card.find('.text-muted').text().includes('Enrolled')) {
+                $card.find('.fw-bold.text-warning').text(enrolledCount);
+            }
+        });
+    }
+    
+});
+
+/**
+ * Unenroll from a course via AJAX
+ */
+async function unenrollCourse(courseId) {
+    if (!confirm('Are you sure you want to unenroll from this course?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('<?= base_url('courses/unenroll') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                'course_id': courseId,
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('Success!', data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast('Error', data.message, 'danger');
+        }
+    } catch (error) {
+        showToast('Error', 'An error occurred. Please try again.', 'danger');
+        console.error('Unenrollment error:', error);
+    }
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(title, message, type = 'info') {
+    const toastHtml = `
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-${type} text-white">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    <strong class="me-auto">${title}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing toasts
+    document.querySelectorAll('.toast').forEach(toast => toast.remove());
+    
+    // Add new toast
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(toast => {
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.hide();
+            setTimeout(() => toast.remove(), 500);
+        });
+    }, 5000);
+}
 </script>
 
 <?php $this->endSection(); ?>
