@@ -7,8 +7,6 @@ use App\Models\UserModel;
 class Auth extends BaseController
 {
     protected $userModel;
-    protected $maxLoginAttempts = 5;
-    protected $lockoutTime = 900; // 15 minutes in seconds
 
     public function __construct()
     {
@@ -19,70 +17,7 @@ class Auth extends BaseController
     }
 
     /**
-     * Check if user is rate limited (brute force protection)
-     */
-    private function isRateLimited($identifier)
-    {
-        $attempts = session()->get('login_attempts_' . md5($identifier)) ?? 0;
-        $lockoutUntil = session()->get('lockout_until_' . md5($identifier)) ?? 0;
-        
-        // Check if still locked out
-        if ($lockoutUntil > time()) {
-            $remainingTime = ceil(($lockoutUntil - time()) / 60);
-            return [
-                'locked' => true,
-                'message' => "Too many failed attempts. Please try again in {$remainingTime} minute(s)."
-            ];
-        }
-        
-        // Check if max attempts exceeded
-        if ($attempts >= $this->maxLoginAttempts) {
-            // Set lockout
-            session()->set('lockout_until_' . md5($identifier), time() + $this->lockoutTime);
-            return [
-                'locked' => true,
-                'message' => "Too many failed attempts. Account locked for 15 minutes."
-            ];
-        }
-        
-        return ['locked' => false];
-    }
-
-    /**
-     * Record failed login attempt
-     */
-    private function recordFailedAttempt($identifier)
-    {
-        $attempts = session()->get('login_attempts_' . md5($identifier)) ?? 0;
-        session()->set('login_attempts_' . md5($identifier), $attempts + 1);
-        
-        // Log failed attempt for security audit
-        log_message('warning', "Failed login attempt for: {$identifier}");
-    }
-
-    /**
-     * Clear login attempts on successful login
-     */
-    private function clearLoginAttempts($identifier)
-    {
-        session()->remove('login_attempts_' . md5($identifier));
-        session()->remove('lockout_until_' . md5($identifier));
-    }
-
-    /**
-     * Sanitize user input to prevent XSS
-     */
-    private function sanitizeInput($input)
-    {
-        if (is_array($input)) {
-            return array_map([$this, 'sanitizeInput'], $input);
-        }
-        return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
-    }
-
-    /**
      * Display registration form and process registration
-     * Enhanced with security measures against common vulnerabilities
      */
     public function register()
     {
@@ -92,24 +27,11 @@ class Auth extends BaseController
         }
 
         if ($this->request->getMethod() === 'post') {
-            // ============================================
-            // SECURITY: CSRF Protection (CodeIgniter handles this automatically)
-            // ============================================
-            
-            $ipAddress = $this->request->getIPAddress();
-            
-            // ============================================
-            // SECURITY: Enhanced Input Validation
-            // ============================================
+            // Validate form data
             $rules = [
-                'name' => 'required|min_length[3]|max_length[100]|alpha_space',
-                'email' => 'required|valid_email|is_unique[users.email]|max_length[255]',
-                'password' => [
-                    'rules' => 'required|min_length[8]|max_length[255]',
-                    'errors' => [
-                        'min_length' => 'Password must be at least 8 characters for security',
-                    ]
-                ],
+                'name' => 'required|min_length[3]|max_length[100]',
+                'email' => 'required|valid_email|is_unique[users.email]',
+                'password' => 'required|min_length[6]',
                 'confirm_password' => 'required|matches[password]',
                 'role' => 'required|in_list[student,instructor]'
             ];
@@ -118,18 +40,16 @@ class Auth extends BaseController
                 'name' => [
                     'required' => 'Name is required',
                     'min_length' => 'Name must be at least 3 characters long',
-                    'max_length' => 'Name cannot exceed 100 characters',
-                    'alpha_space' => 'Name can only contain letters and spaces'
+                    'max_length' => 'Name cannot exceed 100 characters'
                 ],
                 'email' => [
                     'required' => 'Email is required',
                     'valid_email' => 'Please enter a valid email address',
-                    'is_unique' => 'This email is already registered',
-                    'max_length' => 'Email cannot exceed 255 characters'
+                    'is_unique' => 'This email is already registered'
                 ],
                 'password' => [
                     'required' => 'Password is required',
-                    'max_length' => 'Password is too long'
+                    'min_length' => 'Password must be at least 6 characters long'
                 ],
                 'confirm_password' => [
                     'required' => 'Please confirm your password',
@@ -137,7 +57,7 @@ class Auth extends BaseController
                 ],
                 'role' => [
                     'required' => 'Please select a role',
-                    'in_list' => 'Invalid role selected. Only student and instructor roles are allowed for registration.'
+                    'in_list' => 'Please select a valid role'
                 ]
             ];
 
@@ -151,67 +71,28 @@ class Auth extends BaseController
                 return view('auth/register', $data);
             }
 
-            // ============================================
-            // SECURITY: Input Sanitization (Defense in Depth)
-            // ============================================
-            $name = $this->sanitizeInput($this->request->getPost('name'));
-            $email = filter_var($this->request->getPost('email'), FILTER_SANITIZE_EMAIL);
-            $password = $this->request->getPost('password'); // Don't sanitize password
-            $role = $this->request->getPost('role');
-            
-            // ============================================
-            // SECURITY: Additional Email Validation
-            // ============================================
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                session()->setFlashdata('error', 'Invalid email format.');
-                return redirect()->back()->withInput();
-            }
-            
-            // ============================================
-            // SECURITY: Password Strength Validation
-            // ============================================
-            if (!$this->isPasswordStrong($password)) {
-                session()->setFlashdata('error', 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
-                return redirect()->back()->withInput();
-            }
-
-            // ============================================
-            // SECURITY: Secure Password Hashing
-            // ============================================
+            // Validation passed, create user
             $userData = [
-                'name' => $name,
-                'email' => $email,
-                'password' => password_hash($password, PASSWORD_ARGON2ID), // More secure algorithm
-                'role' => $role,
+                'name' => $this->request->getPost('name'),
+                'email' => $this->request->getPost('email'),
+                'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+                'role' => $this->request->getPost('role'),
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ];
 
             try {
-                // Begin transaction for data integrity
-                $db = \Config\Database::connect();
-                $db->transStart();
-                
                 $userId = $this->userModel->insert($userData);
                 
-                $db->transComplete();
-                
-                if ($userId && $db->transStatus()) {
-                    // Log successful registration
-                    log_message('info', "New user registered: {$email} with role: {$role}");
-                    
+                if ($userId) {
                     // Registration successful
-                    session()->setFlashdata('success', 'Registration successful! Please log in with your credentials.');
+                    session()->setFlashdata('success', 'Registration successful! Please log in.');
                     return redirect()->to('/login');
                 } else {
-                    throw new \Exception('Failed to create user account');
+                    session()->setFlashdata('error', 'Registration failed. Please try again.');
                 }
             } catch (\Exception $e) {
-                // Log error
-                log_message('error', "Registration error: " . $e->getMessage());
-                
-                session()->setFlashdata('error', 'An error occurred during registration. Please try again later.');
-                return redirect()->back()->withInput();
+                session()->setFlashdata('error', 'An error occurred during registration. Please try again.');
             }
         }
 
@@ -225,22 +106,7 @@ class Auth extends BaseController
     }
 
     /**
-     * Validate password strength
-     */
-    private function isPasswordStrong($password)
-    {
-        // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special char
-        $uppercase = preg_match('@[A-Z]@', $password);
-        $lowercase = preg_match('@[a-z]@', $password);
-        $number = preg_match('@[0-9]@', $password);
-        $specialChars = preg_match('@[^\w]@', $password);
-        
-        return $uppercase && $lowercase && $number && $specialChars && strlen($password) >= 8;
-    }
-
-    /**
      * Display login form and process login
-     * Enhanced with comprehensive security measures
      */
     public function login()
     {
@@ -250,30 +116,19 @@ class Auth extends BaseController
         }
 
         if ($this->request->getMethod() === 'post') {
-            // ============================================
-            // SECURITY: CSRF Protection (Auto-handled by CodeIgniter)
-            // ============================================
-            
-            $ipAddress = $this->request->getIPAddress();
-            
-            // ============================================
-            // SECURITY: Input Validation
-            // ============================================
+            // Validate form data
             $rules = [
-                'email' => 'required|valid_email|max_length[255]',
-                'password' => 'required|min_length[1]|max_length[255]'
+                'email' => 'required|valid_email',
+                'password' => 'required'
             ];
 
             $messages = [
                 'email' => [
                     'required' => 'Email is required',
-                    'valid_email' => 'Please enter a valid email address',
-                    'max_length' => 'Email is too long'
+                    'valid_email' => 'Please enter a valid email address'
                 ],
                 'password' => [
-                    'required' => 'Password is required',
-                    'min_length' => 'Password is required',
-                    'max_length' => 'Password is too long'
+                    'required' => 'Password is required'
                 ]
             ];
 
@@ -287,57 +142,21 @@ class Auth extends BaseController
                 return view('auth/login', $data);
             }
 
-            // ============================================
-            // SECURITY: Input Sanitization
-            // ============================================
-            $email = filter_var(trim($this->request->getPost('email')), FILTER_SANITIZE_EMAIL);
+            // Validation passed, attempt login
+            $email = $this->request->getPost('email');
             $password = $this->request->getPost('password');
-            
-            // ============================================
-            // SECURITY: Validate Email Format
-            // ============================================
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                session()->setFlashdata('error', 'Invalid email format.');
-                return redirect()->back();
-            }
 
-            // ============================================
-            // SECURITY: Timing Attack Prevention
-            // ============================================
-            // Use constant-time comparison for existence check
             $user = $this->userModel->where('email', $email)->first();
-            
-            // Always perform password verification even if user doesn't exist
-            // This prevents timing attacks to enumerate users
-            $dummyHash = '$2y$10$abcdefghijklmnopqrstuv1234567890123456789012';
-            $userPassword = $user ? $user['password'] : $dummyHash;
-            
-            $passwordValid = password_verify($password, $userPassword);
 
-            if ($user && $passwordValid) {
-                // ============================================
-                // SECURITY: Check if password needs rehashing
-                // ============================================
-                if (password_needs_rehash($user['password'], PASSWORD_ARGON2ID)) {
-                    $this->userModel->update($user['id'], [
-                        'password' => password_hash($password, PASSWORD_ARGON2ID)
-                    ]);
-                }
-                
-                // ============================================
-                // SECURITY: Successful Login
-                // ============================================
-                
-                // Create secure session
+            if ($user && password_verify($password, $user['password'])) {
+                // Login successful - create session with user data and role
                 $sessionData = [
                     'user_id' => $user['id'],
-                    'user_name' => $this->sanitizeInput($user['name']),
+                    'user_name' => $user['name'],
                     'user_email' => $user['email'],
-                    'user_role' => $user['role'],
+                    'user_role' => $user['role'],        // Store role for conditional checks
                     'logged_in' => true,
-                    'login_time' => time(),
-                    'ip_address' => $ipAddress,
-                    'user_agent' => $this->request->getUserAgent()->getAgentString()
+                    'login_time' => time()
                 ];
                 
                 session()->set($sessionData);
@@ -345,20 +164,18 @@ class Auth extends BaseController
                 // Set session timeout (30 minutes)
                 set_session_timeout(30);
                 
-                // Regenerate session ID for security (prevent session fixation)
-                session()->regenerate();
+                // Regenerate session ID for security
+                regenerate_session();
                 
-                // Log successful login
-                log_message('info', "Successful login: {$email} from IP: {$ipAddress}");
+                // Success message with user's name
+                session()->setFlashdata('success', 'Welcome back, ' . $user['name'] . '!');
                 
-                session()->setFlashdata('success', 'Welcome back, ' . esc($user['name']) . '!');
+                // *** UNIFIED DASHBOARD REDIRECT ***
+                // All users (admin, teacher, instructor, student) redirect to same dashboard
+                // Role-based content is handled in the dashboard() method
                 return redirect()->to('/dashboard');
             } else {
-                // ============================================
-                // SECURITY: Failed Login Handling
-                // ============================================
-                
-                // Generic error message (don't reveal if email exists)
+                // Login failed
                 session()->setFlashdata('error', 'Invalid email or password.');
             }
         }
@@ -396,9 +213,9 @@ class Auth extends BaseController
      */
     public function dashboard()
     {
-        // ============================================
-        // STEP 1: AUTHORIZATION CHECK
-        // ============================================
+        // ============================================================
+        // STEP 1: AUTHORIZATION CHECKS
+        // ============================================================
         
         // Check if user is logged in
         if (!is_user_logged_in()) {
@@ -406,34 +223,35 @@ class Auth extends BaseController
             return redirect()->to('/login');
         }
 
-        // Check session timeout
+        // Check session timeout for security
         if (check_session_timeout()) {
             return; // logout_user() already called in check_session_timeout()
         }
 
-        // Get user ID from session
+        // Verify user ID exists in session
         $userId = get_user_id();
-        
-        // Verify user ID exists
         if (!$userId) {
             session()->setFlashdata('error', 'Invalid session. Please log in again.');
             return redirect()->to('/login');
         }
 
-        // Get user data from database
+        // ============================================================
+        // STEP 2: FETCH USER DATA FROM DATABASE
+        // ============================================================
+        
+        // Get complete user data from database
         $user = $this->userModel->find($userId);
 
-        // Verify user exists in database
+        // Verify user still exists in database
         if (!$user) {
-            session()->setFlashdata('error', 'User account not found. Please contact administrator.');
+            session()->setFlashdata('error', 'User account not found. Please contact support.');
             logout_user();
             return redirect()->to('/login');
         }
 
-        // Verify user has a valid role
-        $validRoles = ['admin', 'teacher', 'instructor', 'student'];
-        if (!in_array($user['role'], $validRoles)) {
-            session()->setFlashdata('error', 'Invalid user role. Access denied.');
+        // Verify user account is active (if you have an is_active field)
+        if (isset($user['is_active']) && !$user['is_active']) {
+            session()->setFlashdata('error', 'Your account has been deactivated. Please contact support.');
             logout_user();
             return redirect()->to('/login');
         }
@@ -441,219 +259,200 @@ class Auth extends BaseController
         // Update session timeout on activity
         set_session_timeout(30);
 
-        // Log dashboard access (optional security audit)
-        log_message('info', 'User ' . $user['email'] . ' accessed dashboard with role: ' . $user['role']);
-
-        // ============================================
-        // STEP 2: PREPARE BASE DASHBOARD DATA
-        // ============================================
+        // ============================================================
+        // STEP 3: PREPARE BASE DASHBOARD DATA
+        // ============================================================
         
         $dashboardData = [
-            'title' => 'Dashboard - ' . ucfirst($user['role']),
+            'title' => 'Dashboard',
             'user' => $user,
             'user_role' => $user['role'],
-            'session_start' => session()->get('login_time'),
-            'current_time' => time(),
+            'user_id' => $user['id'],
+            'user_name' => $user['name'],
+            'user_email' => $user['email'],
+            'login_time' => session()->get('login_time'),
+            'current_time' => time()
         ];
 
-        // ============================================
-        // STEP 3: FETCH ROLE-SPECIFIC DATA FROM DATABASE
-        // ============================================
+        // ============================================================
+        // STEP 4: FETCH ROLE-SPECIFIC DATA FROM DATABASE
+        // ============================================================
         
         switch ($user['role']) {
             case 'admin':
-                // Admin dashboard - Fetch comprehensive system statistics
-                $dashboardData = array_merge($dashboardData, $this->getAdminDashboardData($userId));
+                // ========== ADMIN DASHBOARD DATA ==========
+                $dashboardData['dashboard_type'] = 'admin';
+                $dashboardData['page_title'] = 'Admin Dashboard';
+                
+                // Get user statistics
+                $dashboardData['total_users'] = $this->userModel->countAll();
+                $dashboardData['total_students'] = $this->userModel->where('role', 'student')->countAllResults();
+                $dashboardData['total_teachers'] = $this->userModel->where('role', 'teacher')->countAllResults();
+                $dashboardData['total_instructors'] = $this->userModel->where('role', 'instructor')->countAllResults();
+                $dashboardData['total_admins'] = $this->userModel->where('role', 'admin')->countAllResults();
+                
+                // Get recent users (last 5 registered)
+                $dashboardData['recent_users'] = $this->userModel
+                    ->orderBy('created_at', 'DESC')
+                    ->limit(5)
+                    ->find();
+                
+                // Get users by role for chart/display
+                $dashboardData['users_by_role'] = [
+                    'admin' => $dashboardData['total_admins'],
+                    'teacher' => $dashboardData['total_teachers'],
+                    'instructor' => $dashboardData['total_instructors'],
+                    'student' => $dashboardData['total_students']
+                ];
+                
+                // Admin permissions
+                $dashboardData['permissions'] = [
+                    'can_create_users' => true,
+                    'can_delete_users' => true,
+                    'can_manage_courses' => true,
+                    'can_view_reports' => true,
+                    'can_manage_settings' => true
+                ];
+                break;
+                
+            case 'teacher':
+                // ========== TEACHER DASHBOARD DATA ==========
+                $dashboardData['dashboard_type'] = 'teacher';
+                $dashboardData['page_title'] = 'Teacher Dashboard';
+                
+                // Get teacher's courses (assuming courses table exists)
+                // $dashboardData['my_courses'] = $db->table('courses')
+                //     ->where('instructor_id', $userId)
+                //     ->get()
+                //     ->getResultArray();
+                
+                // For now, add placeholder data
+                $dashboardData['total_courses'] = 0; // Will be updated when courses table is used
+                $dashboardData['total_students'] = 0; // Students in teacher's courses
+                $dashboardData['pending_assignments'] = 0; // Assignments to grade
+                
+                // Get all students for teacher's reference
+                $dashboardData['all_students'] = $this->userModel
+                    ->where('role', 'student')
+                    ->orderBy('name', 'ASC')
+                    ->find();
+                
+                $dashboardData['student_count'] = count($dashboardData['all_students']);
+                
+                // Teacher permissions
+                $dashboardData['permissions'] = [
+                    'can_create_courses' => true,
+                    'can_grade_assignments' => true,
+                    'can_view_students' => true,
+                    'can_manage_lessons' => true,
+                    'can_create_quizzes' => true
+                ];
                 break;
                 
             case 'instructor':
-            case 'teacher':
-                // Teacher/Instructor dashboard - Fetch teaching-related data
-                $dashboardData = array_merge($dashboardData, $this->getTeacherDashboardData($userId));
+                // ========== INSTRUCTOR DASHBOARD DATA ==========
+                $dashboardData['dashboard_type'] = 'instructor';
+                $dashboardData['page_title'] = 'Instructor Dashboard';
+                
+                // Similar to teacher but with different permissions
+                $dashboardData['total_courses'] = 0;
+                $dashboardData['total_resources'] = 0;
+                $dashboardData['scheduled_classes'] = 0;
+                
+                // Get students for instructor's courses
+                $dashboardData['all_students'] = $this->userModel
+                    ->where('role', 'student')
+                    ->orderBy('name', 'ASC')
+                    ->find();
+                
+                $dashboardData['student_count'] = count($dashboardData['all_students']);
+                
+                // Instructor permissions
+                $dashboardData['permissions'] = [
+                    'can_create_courses' => true,
+                    'can_upload_resources' => true,
+                    'can_view_students' => true,
+                    'can_manage_schedule' => true,
+                    'can_create_assignments' => true
+                ];
                 break;
                 
             case 'student':
-                // Student dashboard - Fetch learning-related data
-                $dashboardData = array_merge($dashboardData, $this->getStudentDashboardData($userId));
+                // ========== STUDENT DASHBOARD DATA ==========
+                $dashboardData['dashboard_type'] = 'student';
+                $dashboardData['page_title'] = 'Student Dashboard';
+                
+                // Get student's enrolled courses (assuming enrollments table exists)
+                // $dashboardData['enrolled_courses'] = $db->table('enrollments')
+                //     ->join('courses', 'courses.id = enrollments.course_id')
+                //     ->where('enrollments.user_id', $userId)
+                //     ->get()
+                //     ->getResultArray();
+                
+                // For now, add placeholder data
+                $dashboardData['enrolled_courses_count'] = 0;
+                $dashboardData['completed_courses'] = 0;
+                $dashboardData['pending_assignments'] = 0;
+                $dashboardData['upcoming_quizzes'] = 0;
+                
+                // Get all teachers for student's reference
+                $dashboardData['all_teachers'] = $this->userModel
+                    ->where('role', 'teacher')
+                    ->orderBy('name', 'ASC')
+                    ->find();
+                
+                $dashboardData['teacher_count'] = count($dashboardData['all_teachers']);
+                
+                // Student's grade summary (placeholder)
+                $dashboardData['grade_summary'] = [
+                    'average_grade' => 0,
+                    'total_credits' => 0,
+                    'gpa' => 0.0
+                ];
+                
+                // Student permissions
+                $dashboardData['permissions'] = [
+                    'can_enroll_courses' => true,
+                    'can_submit_assignments' => true,
+                    'can_take_quizzes' => true,
+                    'can_view_grades' => true,
+                    'can_download_resources' => true
+                ];
                 break;
                 
             default:
-                // Default dashboard for unrecognized roles (fallback)
-                $dashboardData['dashboard_message'] = 'Welcome to Dashboard';
-                $dashboardData['dashboard_description'] = 'Your personalized learning space';
-                break;
+                // ========== INVALID ROLE ==========
+                session()->setFlashdata('error', 'Invalid user role detected. Please contact support.');
+                logout_user();
+                return redirect()->to('/login');
         }
 
-        // ============================================
-        // STEP 4: PASS DATA TO VIEW
-        // ============================================
+        // ============================================================
+        // STEP 5: ADD COMMON DATA FOR ALL ROLES
+        // ============================================================
+        
+        // Add system-wide notifications (placeholder)
+        $dashboardData['notifications'] = [];
+        $dashboardData['unread_notifications'] = 0;
+        
+        // Add user's last login time
+        $dashboardData['last_login'] = session()->get('login_time') 
+            ? date('F j, Y g:i A', session()->get('login_time')) 
+            : 'First login';
+        
+        // Session info for debugging (remove in production)
+        $dashboardData['session_info'] = [
+            'user_id' => session()->get('user_id'),
+            'user_role' => session()->get('user_role'),
+            'logged_in' => session()->get('logged_in'),
+            'login_time' => session()->get('login_time')
+        ];
+
+        // ============================================================
+        // STEP 6: RETURN VIEW WITH ALL DATA
+        // ============================================================
         
         return view('auth/dashboard', $dashboardData);
-    }
-
-    /**
-     * Get Admin-specific dashboard data from database
-     */
-    private function getAdminDashboardData($userId)
-    {
-        // Fetch system-wide statistics
-        $totalUsers = $this->userModel->countAll();
-        $totalStudents = $this->userModel->where('role', 'student')->countAllResults();
-        $totalInstructors = $this->userModel->where('role', 'instructor')->countAllResults();
-        $totalTeachers = $this->userModel->where('role', 'teacher')->countAllResults();
-        $totalAdmins = $this->userModel->where('role', 'admin')->countAllResults();
-        
-        // Fetch recent users (last 5 registered)
-        $recentUsers = $this->userModel
-            ->orderBy('created_at', 'DESC')
-            ->limit(5)
-            ->find();
-        
-        // Fetch announcements count
-        $db = \Config\Database::connect();
-        $announcementsCount = $db->table('announcements')
-            ->where('is_active', true)
-            ->countAllResults();
-        
-        // Fetch courses count if courses table exists
-        $coursesCount = 0;
-        if ($db->tableExists('courses')) {
-            $coursesCount = $db->table('courses')->countAllResults();
-        }
-        
-        return [
-            'dashboard_message' => 'Welcome to Admin Dashboard',
-            'dashboard_description' => 'Manage users, courses, and system settings',
-            'total_users' => $totalUsers,
-            'total_students' => $totalStudents,
-            'total_instructors' => $totalInstructors,
-            'total_teachers' => $totalTeachers,
-            'total_admins' => $totalAdmins,
-            'recent_users' => $recentUsers,
-            'total_announcements' => $announcementsCount,
-            'total_courses' => $coursesCount,
-            'active_users' => $totalUsers, // Could be enhanced with last_login tracking
-        ];
-    }
-
-    /**
-     * Get Teacher/Instructor-specific dashboard data from database
-     */
-    private function getTeacherDashboardData($userId)
-    {
-        $db = \Config\Database::connect();
-        
-        // Initialize default values
-        $myCourses = [];
-        $totalStudents = 0;
-        $totalLessons = 0;
-        
-        // Fetch courses taught by this instructor (if courses table exists)
-        if ($db->tableExists('courses')) {
-            $myCourses = $db->table('courses')
-                ->where('instructor_id', $userId)
-                ->get()
-                ->getResultArray();
-            
-            // Count total students enrolled in instructor's courses
-            if ($db->tableExists('enrollments') && count($myCourses) > 0) {
-                $courseIds = array_column($myCourses, 'id');
-                $totalStudents = $db->table('enrollments')
-                    ->whereIn('course_id', $courseIds)
-                    ->countAllResults();
-            }
-            
-            // Count total lessons created by this instructor
-            if ($db->tableExists('lessons') && count($myCourses) > 0) {
-                $courseIds = array_column($myCourses, 'id');
-                $totalLessons = $db->table('lessons')
-                    ->whereIn('course_id', $courseIds)
-                    ->countAllResults();
-            }
-        }
-        
-        return [
-            'dashboard_message' => 'Welcome to Teacher Dashboard',
-            'dashboard_description' => 'Manage your courses, lessons, and student assessments',
-            'my_courses' => $myCourses,
-            'total_courses' => count($myCourses),
-            'total_students' => $totalStudents,
-            'total_lessons' => $totalLessons,
-            'pending_submissions' => 0, // Could be enhanced with submissions tracking
-        ];
-    }
-
-    /**
-     * Get Student-specific dashboard data from database
-     */
-    private function getStudentDashboardData($userId)
-    {
-        $db = \Config\Database::connect();
-        
-        // Initialize default values
-        $enrolledCourses = [];
-        $completedLessons = 0;
-        $totalProgress = 0;
-        $enrolledCourseIds = [];
-        
-        // Fetch enrolled courses using EnrollmentModel
-        $enrollmentModel = new \App\Models\EnrollmentModel();
-        $enrollments = $enrollmentModel->getUserEnrollments($userId);
-        
-        if (!empty($enrollments)) {
-            $enrolledCourses = $enrollments;
-            $enrolledCourseIds = array_column($enrollments, 'course_id');
-            
-            // Calculate average progress
-            $progressSum = array_sum(array_column($enrollments, 'progress'));
-            $totalProgress = count($enrollments) > 0 ? 
-                round($progressSum / count($enrollments), 2) : 0;
-            
-            // Count completed courses
-            foreach ($enrollments as $enrollment) {
-                if ($enrollment['status'] === 'completed') {
-                    $completedLessons++;
-                }
-            }
-        }
-        
-        // Fetch available courses (not yet enrolled)
-        $availableCourses = [];
-        if ($db->tableExists('courses')) {
-            $builder = $db->table('courses')
-                ->where('is_published', true);
-            
-            // Exclude already enrolled courses
-            if (!empty($enrolledCourseIds)) {
-                $builder->whereNotIn('id', $enrolledCourseIds);
-            }
-            
-            $availableCourses = $builder
-                ->orderBy('created_at', 'DESC')
-                ->limit(6) // Limit to 6 available courses
-                ->get()
-                ->getResultArray();
-        }
-        
-        // Fetch recent announcements
-        $recentAnnouncements = $db->table('announcements')
-            ->where('is_active', true)
-            ->orderBy('date_posted', 'DESC')
-            ->limit(3)
-            ->get()
-            ->getResultArray();
-        
-        return [
-            'dashboard_message' => 'Welcome to Student Dashboard',
-            'dashboard_description' => 'View your enrolled courses, lessons, and progress',
-            'enrolled_courses' => $enrolledCourses,
-            'available_courses' => $availableCourses,
-            'total_enrolled' => count($enrolledCourses),
-            'completed_courses' => $completedLessons,
-            'overall_progress' => $totalProgress,
-            'recent_announcements' => $recentAnnouncements,
-            'pending_quizzes' => 0, // Could be enhanced with quiz tracking
-        ];
     }
 
     /**
