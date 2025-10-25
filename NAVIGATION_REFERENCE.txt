@@ -1,0 +1,405 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║              DYNAMIC NAVIGATION BAR - QUICK REFERENCE                 ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+LOCATION: app/Views/template.php
+ACCESS: Available on all pages throughout the application
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 NAVIGATION STRUCTURE
+═══════════════════════════════════════════════════════════════════════════
+
+PUBLIC NAVIGATION (Not logged in):
+├─ Home
+├─ About
+├─ Contact
+├─ Browse Courses
+├─ Login
+└─ Register
+
+AUTHENTICATED NAVIGATION (Logged in):
+├─ Home
+├─ Dashboard
+├─ [Role-specific dropdown]
+├─ More (common items)
+└─ User dropdown (enhanced)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔴 ADMIN NAVIGATION
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN DROPDOWN:
+┌─────────────────────┐
+│ Admin               │
+├─────────────────────┤
+│ Manage Users        │
+│ Manage Courses      │
+│ Reports             │
+│ System Settings     │
+└─────────────────────┘
+
+ADMIN USER DROPDOWN:
+┌─────────────────────┐
+│ 🛡️ Admin User       │
+│ admin@lms.com       │
+├─────────────────────┤
+│ Dashboard           │
+│ My Profile          │
+│ Notifications (3)   │
+├─────────────────────┤
+│ Manage Users        │
+│ View Reports        │
+├─────────────────────┤
+│ Help & Support      │
+│ Logout              │
+└─────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+🟢 TEACHER NAVIGATION
+═══════════════════════════════════════════════════════════════════════════
+
+TEACHING DROPDOWN:
+┌─────────────────────┐
+│ Teaching            │
+├─────────────────────┤
+│ My Courses          │
+│ Lessons             │
+│ Quizzes             │
+│ Assignments         │
+│ My Students         │
+└─────────────────────┘
+
+TEACHER USER DROPDOWN:
+┌─────────────────────┐
+│ 👨‍🏫 Teacher Name      │
+│ teacher@email.com   │
+├─────────────────────┤
+│ Dashboard           │
+│ My Profile          │
+│ Notifications (3)   │
+├─────────────────────┤
+│ My Courses          │
+│ My Students         │
+├─────────────────────┤
+│ Help & Support      │
+│ Logout              │
+└─────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+🟡 INSTRUCTOR NAVIGATION
+═══════════════════════════════════════════════════════════════════════════
+
+INSTRUCTING DROPDOWN:
+┌─────────────────────┐
+│ Instructing         │
+├─────────────────────┤
+│ My Courses          │
+│ Resources           │
+│ Schedule            │
+│ Assignments         │
+│ My Students         │
+└─────────────────────┘
+
+INSTRUCTOR USER DROPDOWN:
+┌─────────────────────┐
+│ 👨‍💼 Instructor Name   │
+│ instructor@email.com│
+├─────────────────────┤
+│ Dashboard           │
+│ My Profile          │
+│ Notifications (3)   │
+├─────────────────────┤
+│ My Courses          │
+│ Schedule            │
+├─────────────────────┤
+│ Help & Support      │
+│ Logout              │
+└─────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔵 STUDENT NAVIGATION
+═══════════════════════════════════════════════════════════════════════════
+
+LEARNING DROPDOWN:
+┌─────────────────────┐
+│ Learning            │
+├─────────────────────┤
+│ My Courses          │
+│ Assignments         │
+│ Quizzes             │
+│ Grades              │
+│ Progress            │
+└─────────────────────┘
+
+STUDENT USER DROPDOWN:
+┌─────────────────────┐
+│ 🎓 Student Name     │
+│ student@email.com   │
+├─────────────────────┤
+│ Dashboard           │
+│ My Profile          │
+│ Notifications (3)   │
+├─────────────────────┤
+│ My Courses          │
+│ My Grades           │
+├─────────────────────┤
+│ Help & Support      │
+│ Logout              │
+└─────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+🍞 BREADCRUMB NAVIGATION
+═══════════════════════════════════════════════════════════════════════════
+
+BREADCRUMB STRUCTURE:
+Dashboard > [Section] > [Page]
+
+EXAMPLES:
+Dashboard > Admin > Manage Users
+Dashboard > Teaching > My Courses
+Dashboard > Learning > My Grades
+Dashboard > Instructing > Schedule
+
+BREADCRUMB IMPLEMENTATION:
+<?php if (is_user_logged_in() && isset($breadcrumbs) && !empty($breadcrumbs)): ?>
+    <nav aria-label="breadcrumb" class="bg-light border-bottom">
+        <div class="container">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="<?= base_url('dashboard') ?>">
+                        <i class="bi bi-house me-1"></i>Dashboard
+                    </a>
+                </li>
+                <?php foreach ($breadcrumbs as $breadcrumb): ?>
+                    <!-- Breadcrumb items -->
+                <?php endforeach; ?>
+            </ol>
+        </div>
+    </nav>
+<?php endif; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎨 ROLE COLORS & ICONS
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN:
+├─ Color: Primary (Blue)
+├─ Icon: bi-shield-check
+├─ Badge: bg-primary
+└─ Text: text-primary
+
+TEACHER:
+├─ Color: Info (Light Blue)
+├─ Icon: bi-person-badge
+├─ Badge: bg-info
+└─ Text: text-info
+
+INSTRUCTOR:
+├─ Color: Warning (Yellow)
+├─ Icon: bi-person-workspace
+├─ Badge: bg-warning
+└─ Text: text-warning
+
+STUDENT:
+├─ Color: Success (Green)
+├─ Icon: bi-mortarboard
+├─ Badge: bg-success
+└─ Text: text-success
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔗 NAVIGATION URLS
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN URLs:
+├─ /admin/users
+├─ /admin/courses
+├─ /admin/reports
+└─ /admin/settings
+
+TEACHER URLs:
+├─ /teacher/courses
+├─ /teacher/lessons
+├─ /teacher/quizzes
+├─ /teacher/assignments
+└─ /teacher/students
+
+INSTRUCTOR URLs:
+├─ /instructor/courses
+├─ /instructor/resources
+├─ /instructor/schedule
+├─ /instructor/assignments
+└─ /instructor/students
+
+STUDENT URLs:
+├─ /student/courses
+├─ /student/assignments
+├─ /student/quizzes
+├─ /student/grades
+└─ /student/progress
+
+COMMON URLs:
+├─ /dashboard
+├─ /profile
+├─ /notifications
+├─ /help
+├─ /about
+└─ /contact
+
+═══════════════════════════════════════════════════════════════════════════
+
+📱 RESPONSIVE BEHAVIOR
+═══════════════════════════════════════════════════════════════════════════
+
+MOBILE (< 768px):
+├─ Hamburger menu toggle
+├─ Collapsible navigation
+├─ Stacked dropdown menus
+├─ Touch-friendly buttons
+└─ Full-width breadcrumbs
+
+DESKTOP (≥ 768px):
+├─ Horizontal navigation
+├─ Hover dropdown menus
+├─ Right-aligned user menu
+├─ Inline breadcrumbs
+└─ Multi-column layouts
+
+═══════════════════════════════════════════════════════════════════════════
+
+⚡ JAVASCRIPT FEATURES
+═══════════════════════════════════════════════════════════════════════════
+
+ACTIVE NAVIGATION:
+- Highlights current page
+- Adds 'active' class to nav links
+- Works with dropdown items
+
+DROPDOWN MANAGEMENT:
+- Auto-close on outside click
+- Smooth open/close animations
+- Mobile-friendly touch events
+
+NOTIFICATION ANIMATION:
+- Badge scales every 3 seconds
+- Draws attention to notifications
+- Smooth CSS transitions
+
+MOBILE ENHANCEMENT:
+- Toggle menu functionality
+- Touch event handling
+- Responsive breakpoints
+
+═══════════════════════════════════════════════════════════════════════════
+
+🧪 TESTING CHECKLIST
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN TEST:
+□ Login as admin@lms.com
+□ See "Admin" dropdown with 4 items
+□ See blue role badge in user menu
+□ See admin-specific quick actions
+□ See shield icon for admin role
+
+TEACHER TEST:
+□ Login as maria.garcia@teacher.com
+□ See "Teaching" dropdown with 5 items
+□ See light blue role badge
+□ See teacher-specific quick actions
+□ See person-badge icon
+
+INSTRUCTOR TEST:
+□ Login as instructor@lms.com
+□ See "Instructing" dropdown with 5 items
+□ See yellow role badge
+□ See instructor-specific quick actions
+□ See person-workspace icon
+
+STUDENT TEST:
+□ Login as alice.wilson@student.com
+□ See "Learning" dropdown with 5 items
+□ See green role badge
+□ See student-specific quick actions
+□ See mortarboard icon
+
+PUBLIC TEST:
+□ Logout or access without login
+□ See Home, About, Contact, Browse Courses
+□ See Login and Register buttons
+□ No role-specific menus visible
+
+RESPONSIVE TEST:
+□ Mobile navigation collapses
+□ Desktop navigation horizontal
+□ Touch-friendly dropdowns
+□ Proper spacing on all devices
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 CUSTOMIZATION TIPS
+═══════════════════════════════════════════════════════════════════════════
+
+ADD NEW NAVIGATION ITEM:
+1. Add to appropriate role dropdown
+2. Use consistent icon and styling
+3. Update URL routing
+4. Test on all devices
+
+ADD NEW ROLE:
+1. Add role detection logic
+2. Create role-specific dropdown
+3. Add role colors and icons
+4. Update user dropdown
+
+CHANGE COLORS:
+1. Update CSS variables
+2. Modify role color logic
+3. Update badge classes
+4. Test accessibility
+
+ADD BREADCRUMBS:
+1. Pass $breadcrumbs array from controller
+2. Structure: ['title' => 'Page', 'url' => 'path']
+3. Last item has no URL (active page)
+4. Test navigation flow
+
+═══════════════════════════════════════════════════════════════════════════
+
+📍 QUICK DEBUGGING
+═══════════════════════════════════════════════════════════════════════════
+
+If navigation shows wrong role:
+1. Check get_user_role() function
+2. Verify session data
+3. Check role detection logic
+4. Clear browser cache
+
+If dropdowns don't work:
+1. Check Bootstrap JS loaded
+2. Verify dropdown IDs match
+3. Check JavaScript console
+4. Test on different browsers
+
+If styling issues:
+1. Check CSS variables
+2. Verify Bootstrap classes
+3. Check responsive breakpoints
+4. Validate HTML structure
+
+If breadcrumbs missing:
+1. Pass $breadcrumbs from controller
+2. Check array structure
+3. Verify template logic
+4. Test with sample data
+
+═══════════════════════════════════════════════════════════════════════════
+END OF REFERENCE
+═══════════════════════════════════════════════════════════════════════════

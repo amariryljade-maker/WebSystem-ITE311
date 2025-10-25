@@ -1,0 +1,146 @@
+DATABASE BACKUP - FILE STRUCTURE
+================================================================================
+ITE311-AMAR Learning Management System
+Backup Date: October 20, 2025
+================================================================================
+
+database_backup/
+├── README.md                                              [5,577 bytes]
+├── FILE_LIST.txt                                          [This file]
+│
+├── migrations/                                            [9 files]
+│   ├── 2025-08-24-045708_CreateUsersTable.php            [2,387 bytes]
+│   ├── 2025-08-24-050612_CreateCoursesTable.php          [3,009 bytes]
+│   ├── 2025-08-24-050702_CreateEnrollmentsTable.php      [2,996 bytes]
+│   ├── 2025-08-24-050754_CreateLessonsTable.php          [2,793 bytes]
+│   ├── 2025-08-24-050819_CreateQuizzesTable.php          [2,666 bytes]
+│   ├── 2025-08-24-050853_CreateSubmissionsTable.php      [3,382 bytes]
+│   ├── 2025-08-24-062344_CreateUsersTableFinal.php       [1,363 bytes]
+│   ├── 2025-10-20-113710_CreateAnnouncementsTable.php    [232 bytes]
+│   └── 2025-10-20-114141_AlterUsersTableAddTeacherRole.php [237 bytes]
+│
+└── seeds/                                                 [1 file]
+    └── UserSeeder.php                                     [11,459 bytes]
+
+================================================================================
+SUMMARY
+================================================================================
+
+Total Files: 11
+- Migration Files: 9
+- Seeder Files: 1
+- Documentation Files: 2 (README.md, FILE_LIST.txt)
+
+Total Size: ~30 KB
+
+================================================================================
+MIGRATION FILES DETAILS
+================================================================================
+
+1. CreateUsersTable.php (2025-08-24-045708)
+   - Creates users table with role-based access control
+   - Roles: admin, instructor, student
+   - Includes: profile info, email verification, login tracking
+
+2. CreateCoursesTable.php (2025-08-24-050612)
+   - Creates courses table
+   - Features: pricing, ratings, publishing, instructor assignment
+   - Foreign Key: instructor_id → users.id
+
+3. CreateEnrollmentsTable.php (2025-08-24-050702)
+   - Creates enrollments table
+   - Tracks: progress, grades, certificates, payments
+   - Foreign Keys: user_id → users.id, course_id → courses.id
+
+4. CreateLessonsTable.php (2025-08-24-050754)
+   - Creates lessons table
+   - Types: video, text, quiz, assignment
+   - Foreign Key: course_id → courses.id
+
+5. CreateQuizzesTable.php (2025-08-24-050819)
+   - Creates quizzes table
+   - Features: time limits, attempts, randomization, scoring
+   - Foreign Key: lesson_id → lessons.id
+
+6. CreateSubmissionsTable.php (2025-08-24-050853)
+   - Creates submissions table
+   - Tracks: quiz attempts, scores, time taken, feedback
+   - Foreign Keys: user_id → users.id, quiz_id → quizzes.id
+
+7. CreateUsersTableFinal.php (2025-08-24-062344)
+   - Alternative/backup users table migration
+
+8. CreateAnnouncementsTable.php (2025-10-20-113710)
+   - Creates announcements table (empty template)
+
+9. AlterUsersTableAddTeacherRole.php (2025-10-20-114141)
+   - Alters users table to add teacher role (empty template)
+
+================================================================================
+SEEDER FILES DETAILS
+================================================================================
+
+1. UserSeeder.php
+   - Populates users table with sample data
+   - Creates 16 users total:
+     * 2 Admin users
+     * 4 Instructor users
+     * 10 Student users
+   - All passwords are properly hashed
+   - All users are email verified and active
+
+================================================================================
+DATABASE TABLES CREATED
+================================================================================
+
+1. users            - User accounts with role-based access
+2. courses          - Course catalog and information
+3. enrollments      - Student course enrollments and progress
+4. lessons          - Course lesson content
+5. quizzes          - Assessment and quiz configuration
+6. submissions      - Quiz attempt records and scores
+
+================================================================================
+USAGE INSTRUCTIONS
+================================================================================
+
+To restore these migrations and seeds:
+
+1. Copy migration files to: app/Database/Migrations/
+   Command: Copy-Item database_backup\migrations\*.php app\Database\Migrations\
+
+2. Copy seeder files to: app/Database/Seeds/
+   Command: Copy-Item database_backup\seeds\*.php app\Database\Seeds\
+
+3. Run migrations:
+   Command: php spark migrate
+
+4. Run seeders:
+   Command: php spark db:seed UserSeeder
+
+================================================================================
+BACKUP INFORMATION
+================================================================================
+
+Backup Location: C:\wamp64\www\ITE311-AMAR\database_backup\
+Source Location: C:\wamp64\www\ITE311-AMAR\app\Database\
+Database Name: lms_amar
+CodeIgniter Version: 4.4.8
+PHP Version: 7.4.33
+Created: October 20, 2025
+
+================================================================================
+NOTES
+================================================================================
+
+- All migrations include proper up() and down() methods for rollback
+- Foreign key constraints are set to CASCADE
+- All seeder passwords use PHP's password_hash() function
+- Timestamps (created_at, updated_at) are included in all tables
+- Email addresses follow a consistent pattern for easy identification
+- This backup is version controlled and can be restored at any time
+
+================================================================================
+End of File List
+================================================================================
+

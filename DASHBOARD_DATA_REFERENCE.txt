@@ -1,0 +1,289 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║          DASHBOARD DATA REFERENCE - VARIABLES AVAILABLE IN VIEW        ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+LOCATION: app/Views/auth/dashboard.php
+ACCESS: After logging in → http://localhost:8080/dashboard
+
+═══════════════════════════════════════════════════════════════════════════
+
+📦 COMMON DATA (Available to ALL roles)
+═══════════════════════════════════════════════════════════════════════════
+
+$title                    string    "Dashboard"
+$page_title               string    Role-specific title
+$dashboard_type           string    "admin|teacher|instructor|student"
+$user                     array     Complete user object from database
+$user_id                  int       User's database ID
+$user_name                string    User's full name
+$user_email               string    User's email address
+$user_role                string    User's role
+$login_time               int       Unix timestamp of login
+$current_time             int       Current Unix timestamp
+$last_login               string    Formatted login time
+$notifications            array     System notifications
+$unread_notifications     int       Count of unread notifications
+$permissions              array     Role-specific permissions
+$session_info             array     Session debugging info
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔴 ADMIN DASHBOARD DATA
+═══════════════════════════════════════════════════════════════════════════
+
+UNIQUE TO ADMIN:
+────────────────
+$total_users              int       Total count of all users
+$total_students           int       Count of student users
+$total_teachers           int       Count of teacher users
+$total_instructors        int       Count of instructor users
+$total_admins             int       Count of admin users
+$recent_users             array     Last 5 registered users (full objects)
+$users_by_role            array     User counts grouped by role
+
+STRUCTURE OF $users_by_role:
+[
+    'admin' => 2,
+    'teacher' => 2,
+    'instructor' => 4,
+    'student' => 10
+]
+
+STRUCTURE OF $recent_users:
+[
+    [
+        'id' => 1,
+        'name' => 'Admin User',
+        'email' => 'admin@lms.com',
+        'role' => 'admin',
+        'created_at' => '2025-10-20 23:42:16',
+        'updated_at' => '2025-10-20 23:42:16'
+    ],
+    // ... 4 more users
+]
+
+ADMIN PERMISSIONS:
+$permissions = [
+    'can_create_users' => true,
+    'can_delete_users' => true,
+    'can_manage_courses' => true,
+    'can_view_reports' => true,
+    'can_manage_settings' => true
+]
+
+VIEW USAGE EXAMPLE:
+───────────────────
+<h1><?= $page_title ?></h1>
+<p>Welcome, <?= $user_name ?></p>
+<p>Total Users: <?= $total_users ?></p>
+<p>Students: <?= $total_students ?></p>
+<p>Teachers: <?= $total_teachers ?></p>
+
+<?php foreach ($recent_users as $user): ?>
+    <div><?= $user['name'] ?> - <?= $user['role'] ?></div>
+<?php endforeach; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🟢 TEACHER DASHBOARD DATA
+═══════════════════════════════════════════════════════════════════════════
+
+UNIQUE TO TEACHER:
+──────────────────
+$total_courses            int       Teacher's courses count (0 for now)
+$total_students           int       Students in courses (0 for now)
+$pending_assignments      int       Assignments to grade (0 for now)
+$all_students             array     Complete list of all student users
+$student_count            int       Total number of students
+
+STRUCTURE OF $all_students:
+[
+    [
+        'id' => 7,
+        'name' => 'Alice Wilson',
+        'email' => 'alice.wilson@student.com',
+        'role' => 'student',
+        'created_at' => '2025-10-20 23:42:16',
+        'updated_at' => '2025-10-20 23:42:16'
+    ],
+    // ... more students
+]
+
+TEACHER PERMISSIONS:
+$permissions = [
+    'can_create_courses' => true,
+    'can_grade_assignments' => true,
+    'can_view_students' => true,
+    'can_manage_lessons' => true,
+    'can_create_quizzes' => true
+]
+
+VIEW USAGE EXAMPLE:
+───────────────────
+<h1><?= $page_title ?></h1>
+<p>Total Students: <?= $student_count ?></p>
+
+<h2>My Students</h2>
+<?php foreach ($all_students as $student): ?>
+    <div class="student-card">
+        <strong><?= $student['name'] ?></strong>
+        <span><?= $student['email'] ?></span>
+    </div>
+<?php endforeach; ?>
+
+<?php if ($permissions['can_create_courses']): ?>
+    <button>Create New Course</button>
+<?php endif; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🟡 INSTRUCTOR DASHBOARD DATA
+═══════════════════════════════════════════════════════════════════════════
+
+UNIQUE TO INSTRUCTOR:
+─────────────────────
+$total_courses            int       Instructor's courses (0 for now)
+$total_resources          int       Uploaded resources (0 for now)
+$scheduled_classes        int       Scheduled classes (0 for now)
+$all_students             array     Complete list of all student users
+$student_count            int       Total number of students
+
+STRUCTURE OF $all_students: (Same as Teacher)
+
+INSTRUCTOR PERMISSIONS:
+$permissions = [
+    'can_create_courses' => true,
+    'can_upload_resources' => true,
+    'can_view_students' => true,
+    'can_manage_schedule' => true,
+    'can_create_assignments' => true
+]
+
+VIEW USAGE EXAMPLE:
+───────────────────
+<h1><?= $page_title ?></h1>
+<div class="stats">
+    <div>Courses: <?= $total_courses ?></div>
+    <div>Resources: <?= $total_resources ?></div>
+    <div>Students: <?= $student_count ?></div>
+</div>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔵 STUDENT DASHBOARD DATA
+═══════════════════════════════════════════════════════════════════════════
+
+UNIQUE TO STUDENT:
+──────────────────
+$enrolled_courses_count   int       Enrolled courses (0 for now)
+$completed_courses        int       Completed courses (0 for now)
+$pending_assignments      int       Pending assignments (0 for now)
+$upcoming_quizzes         int       Upcoming quizzes (0 for now)
+$all_teachers             array     Complete list of all teacher users
+$teacher_count            int       Total number of teachers
+$grade_summary            array     Grade statistics
+
+STRUCTURE OF $all_teachers:
+[
+    [
+        'id' => 3,
+        'name' => 'Prof. Maria Garcia',
+        'email' => 'maria.garcia@teacher.com',
+        'role' => 'teacher',
+        'created_at' => '2025-10-20 23:42:16',
+        'updated_at' => '2025-10-20 23:42:16'
+    ],
+    // ... more teachers
+]
+
+STRUCTURE OF $grade_summary:
+[
+    'average_grade' => 0,
+    'total_credits' => 0,
+    'gpa' => 0.0
+]
+
+STUDENT PERMISSIONS:
+$permissions = [
+    'can_enroll_courses' => true,
+    'can_submit_assignments' => true,
+    'can_take_quizzes' => true,
+    'can_view_grades' => true,
+    'can_download_resources' => true
+]
+
+VIEW USAGE EXAMPLE:
+───────────────────
+<h1><?= $page_title ?></h1>
+<p>Enrolled: <?= $enrolled_courses_count ?> courses</p>
+<p>GPA: <?= $grade_summary['gpa'] ?></p>
+
+<h2>My Teachers</h2>
+<?php foreach ($all_teachers as $teacher): ?>
+    <div class="teacher-card">
+        <strong><?= $teacher['name'] ?></strong>
+        <span><?= $teacher['email'] ?></span>
+    </div>
+<?php endforeach; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 USAGE TIPS
+═══════════════════════════════════════════════════════════════════════════
+
+1. CHECK ROLE BEFORE DISPLAYING:
+   ──────────────────────────────
+   <?php if ($dashboard_type === 'admin'): ?>
+       <!-- Admin-only content -->
+   <?php endif; ?>
+
+2. USE PERMISSIONS:
+   ────────────────
+   <?php if ($permissions['can_create_courses']): ?>
+       <button>Create Course</button>
+   <?php endif; ?>
+
+3. SAFE OUTPUT:
+   ────────────
+   <?= esc($user_name) ?>  <!-- Prevents XSS attacks -->
+
+4. CHECK ARRAY EXISTS:
+   ───────────────────
+   <?php if (!empty($recent_users)): ?>
+       <!-- Display users -->
+   <?php endif; ?>
+
+5. FORMAT DATES:
+   ─────────────
+   <?= date('F j, Y', strtotime($user['created_at'])) ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔍 DEBUGGING
+═══════════════════════════════════════════════════════════════════════════
+
+To see all available data in your view, add this temporarily:
+
+<pre><?php print_r($session_info); ?></pre>
+<pre><?php print_r(get_defined_vars()); ?></pre>
+
+Or use:
+<?php var_dump($dashboardData); ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+📍 QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════
+
+Admin sees:     total_users, recent_users, users_by_role
+Teacher sees:   all_students, student_count
+Instructor sees: all_students, student_count, scheduled_classes
+Student sees:   all_teachers, teacher_count, grade_summary
+
+ALL roles see:  user, user_role, permissions, last_login
+
+═══════════════════════════════════════════════════════════════════════════
+END OF REFERENCE
+═══════════════════════════════════════════════════════════════════════════
+
+

@@ -1,0 +1,345 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║              UNIFIED DASHBOARD VIEW - QUICK REFERENCE                 ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+LOCATION: app/Views/auth/dashboard.php
+ACCESS: After logging in → http://localhost:8080/dashboard
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 CONDITIONAL CONTENT STRUCTURE
+═══════════════════════════════════════════════════════════════════════════
+
+<?php if ($dashboard_type === 'admin'): ?>
+    <!-- ADMIN DASHBOARD -->
+    - 4 Statistics Cards (Total Users, Students, Teachers, Instructors)
+    - System Management Tools (permission-based buttons)
+    - Recent Users List (last 5 registered users)
+    - Blue color scheme
+
+<?php elseif ($dashboard_type === 'teacher'): ?>
+    <!-- TEACHER DASHBOARD -->
+    - 3 Statistics Cards (My Courses, Total Students, Pending Assignments)
+    - Teacher Tools (course creation, lesson management, quiz creation, grading)
+    - Student List (all students with scrollable view)
+    - Light blue color scheme
+
+<?php elseif ($dashboard_type === 'instructor'): ?>
+    <!-- INSTRUCTOR DASHBOARD -->
+    - 4 Statistics Cards (My Courses, Resources, Students, Scheduled Classes)
+    - Instructor Tools (course creation, resource upload, schedule management, assignments)
+    - Student List (same as teacher)
+    - Yellow/orange color scheme
+
+<?php elseif ($dashboard_type === 'student'): ?>
+    <!-- STUDENT DASHBOARD -->
+    - 4 Statistics Cards (Enrolled Courses, Completed Courses, Pending Assignments, Upcoming Quizzes)
+    - Student Tools (course browsing, assignment submission, quiz taking, grade viewing)
+    - Teacher List (all teachers with scrollable view)
+    - Academic Summary (grades, credits, GPA)
+    - Green color scheme
+
+<?php endif; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+📊 STATISTICS CARDS BY ROLE
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN (4 cards):
+├─ Total Users: <?= $total_users ?? 0 ?>
+├─ Students: <?= $total_students ?? 0 ?>
+├─ Teachers: <?= $total_teachers ?? 0 ?>
+└─ Instructors: <?= $total_instructors ?? 0 ?>
+
+TEACHER (3 cards):
+├─ My Courses: <?= $total_courses ?? 0 ?>
+├─ Total Students: <?= $student_count ?? 0 ?>
+└─ Pending Assignments: <?= $pending_assignments ?? 0 ?>
+
+INSTRUCTOR (4 cards):
+├─ My Courses: <?= $total_courses ?? 0 ?>
+├─ Resources: <?= $total_resources ?? 0 ?>
+├─ Students: <?= $student_count ?? 0 ?>
+└─ Scheduled Classes: <?= $scheduled_classes ?? 0 ?>
+
+STUDENT (4 cards):
+├─ Enrolled Courses: <?= $enrolled_courses_count ?? 0 ?>
+├─ Completed Courses: <?= $completed_courses ?? 0 ?>
+├─ Pending Assignments: <?= $pending_assignments ?? 0 ?>
+└─ Upcoming Quizzes: <?= $upcoming_quizzes ?? 0 ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔧 PERMISSION-BASED BUTTONS
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN PERMISSIONS:
+<?php if ($permissions['can_create_users']): ?>
+    <button>Manage Users</button>
+<?php endif; ?>
+<?php if ($permissions['can_manage_courses']): ?>
+    <button>Manage Courses</button>
+<?php endif; ?>
+<?php if ($permissions['can_view_reports']): ?>
+    <button>View Reports</button>
+<?php endif; ?>
+<?php if ($permissions['can_manage_settings']): ?>
+    <button>System Settings</button>
+<?php endif; ?>
+
+TEACHER PERMISSIONS:
+<?php if ($permissions['can_create_courses']): ?>
+    <button>Create New Course</button>
+<?php endif; ?>
+<?php if ($permissions['can_manage_lessons']): ?>
+    <button>Manage Lessons</button>
+<?php endif; ?>
+<?php if ($permissions['can_create_quizzes']): ?>
+    <button>Create Quiz</button>
+<?php endif; ?>
+<?php if ($permissions['can_grade_assignments']): ?>
+    <button>Grade Assignments</button>
+<?php endif; ?>
+
+INSTRUCTOR PERMISSIONS:
+<?php if ($permissions['can_create_courses']): ?>
+    <button>Create New Course</button>
+<?php endif; ?>
+<?php if ($permissions['can_upload_resources']): ?>
+    <button>Upload Resources</button>
+<?php endif; ?>
+<?php if ($permissions['can_manage_schedule']): ?>
+    <button>Manage Schedule</button>
+<?php endif; ?>
+<?php if ($permissions['can_create_assignments']): ?>
+    <button>Create Assignment</button>
+<?php endif; ?>
+
+STUDENT PERMISSIONS:
+<?php if ($permissions['can_enroll_courses']): ?>
+    <button>Browse Courses</button>
+<?php endif; ?>
+<?php if ($permissions['can_submit_assignments']): ?>
+    <button>Submit Assignment</button>
+<?php endif; ?>
+<?php if ($permissions['can_take_quizzes']): ?>
+    <button>Take Quiz</button>
+<?php endif; ?>
+<?php if ($permissions['can_view_grades']): ?>
+    <button>View Grades</button>
+<?php endif; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+👥 USER LISTS DISPLAY
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN - Recent Users:
+<?php foreach ($recent_users as $recent_user): ?>
+    <div class="user-item">
+        <h6><?= esc($recent_user['name']) ?></h6>
+        <span class="badge"><?= ucfirst($recent_user['role']) ?></span>
+        <small><?= date('M j, Y', strtotime($recent_user['created_at'])) ?></small>
+    </div>
+<?php endforeach; ?>
+
+TEACHER/INSTRUCTOR - Student List:
+<?php foreach (array_slice($all_students, 0, 5) as $student): ?>
+    <div class="student-item">
+        <h6><?= esc($student['name']) ?></h6>
+        <small><?= esc($student['email']) ?></small>
+    </div>
+<?php endforeach; ?>
+<?php if (count($all_students) > 5): ?>
+    <small>... and <?= count($all_students) - 5 ?> more students</small>
+<?php endif; ?>
+
+STUDENT - Teacher List:
+<?php foreach (array_slice($all_teachers, 0, 5) as $teacher): ?>
+    <div class="teacher-item">
+        <h6><?= esc($teacher['name']) ?></h6>
+        <small><?= esc($teacher['email']) ?></small>
+    </div>
+<?php endforeach; ?>
+<?php if (count($all_teachers) > 5): ?>
+    <small>... and <?= count($all_teachers) - 5 ?> more teachers</small>
+<?php endif; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎨 COLOR SCHEMES
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN:     Primary (Blue)    - bg-primary, text-primary
+TEACHER:   Info (Light Blue) - bg-info, text-info  
+INSTRUCTOR: Warning (Yellow) - bg-warning, text-warning
+STUDENT:   Success (Green)   - bg-success, text-success
+
+BADGE COLORS:
+<?php
+$badgeColor = $user['role'] === 'admin' ? 'primary' : 
+              ($user['role'] === 'teacher' ? 'info' : 
+              ($user['role'] === 'instructor' ? 'warning' : 'success'));
+?>
+<span class="badge bg-<?= $badgeColor ?>"><?= ucfirst($user['role']) ?></span>
+
+═══════════════════════════════════════════════════════════════════════════
+
+📱 RESPONSIVE LAYOUT
+═══════════════════════════════════════════════════════════════════════════
+
+STATISTICS CARDS:
+- Admin: 4 columns (col-md-3)
+- Teacher: 3 columns (col-md-4)  
+- Instructor: 4 columns (col-md-3)
+- Student: 4 columns (col-md-3)
+
+ACTION SECTIONS:
+- Tools: 6 columns (col-md-6)
+- Lists: 6 columns (col-md-6)
+
+SCROLLABLE LISTS:
+<div style="max-height: 300px; overflow-y: auto;">
+    <!-- List content -->
+</div>
+
+EQUAL HEIGHT CARDS:
+<div class="card h-100">
+    <!-- Card content -->
+</div>
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔒 SECURITY FEATURES
+═══════════════════════════════════════════════════════════════════════════
+
+XSS PREVENTION:
+<?= esc($user['name']) ?>        <!-- Escape all user data -->
+<?= esc($student['email']) ?>    <!-- Escape all dynamic content -->
+
+SAFE ARRAY ACCESS:
+<?= $total_users ?? 0 ?>         <!-- Default to 0 if not set -->
+<?= $last_login ?? 'First login' ?>  <!-- Default message -->
+
+PERMISSION CHECKS:
+<?php if ($permissions['can_create_users']): ?>
+    <!-- Only show if user has permission -->
+<?php endif; ?>
+
+═══════════════════════════════════════════════════════════════════════════
+
+⚡ INTERACTIVE FEATURES
+═══════════════════════════════════════════════════════════════════════════
+
+SESSION TIMER:
+- Updates every second
+- Shows remaining time
+- Auto-logout on expiry
+- Resets on user activity
+
+DEBUG INFO TOGGLE:
+- Click "Debug Info" button
+- Shows/hides JSON data
+- Session and dashboard variables
+- Development tool only
+
+FLASH MESSAGES:
+- Success messages (green)
+- Error messages (red)
+- Auto-dismissible
+- Bootstrap alerts
+
+═══════════════════════════════════════════════════════════════════════════
+
+🧪 TESTING CHECKLIST
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN TEST:
+□ Login: admin@lms.com / admin123
+□ See 4 statistics cards
+□ See system management tools
+□ See recent users list
+□ Blue color scheme
+
+TEACHER TEST:
+□ Login: maria.garcia@teacher.com / teacher123
+□ See 3 statistics cards
+□ See teacher tools
+□ See student list (10 students)
+□ Light blue color scheme
+
+INSTRUCTOR TEST:
+□ Login: instructor@lms.com / instructor123
+□ See 4 statistics cards
+□ See instructor tools
+□ See student list
+□ Yellow color scheme
+
+STUDENT TEST:
+□ Login: alice.wilson@student.com / student123
+□ See 4 statistics cards
+□ See student tools
+□ See teacher list (2+ teachers)
+□ See academic summary
+□ Green color scheme
+
+COMMON TESTS:
+□ Session timer works
+□ Debug info toggle works
+□ Flash messages display
+□ Logout button works
+□ Responsive on mobile
+□ All data displays correctly
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 CUSTOMIZATION TIPS
+═══════════════════════════════════════════════════════════════════════════
+
+ADD NEW STATISTICS:
+1. Add variable to controller
+2. Add card to appropriate role section
+3. Use consistent styling
+
+ADD NEW PERMISSIONS:
+1. Add to controller permissions array
+2. Add conditional button in view
+3. Use consistent button styling
+
+ADD NEW USER LISTS:
+1. Add query to controller
+2. Add list section to view
+3. Use consistent list styling
+
+CHANGE COLORS:
+1. Update badge color logic
+2. Update icon colors
+3. Update button colors
+
+═══════════════════════════════════════════════════════════════════════════
+
+📍 QUICK DEBUGGING
+═══════════════════════════════════════════════════════════════════════════
+
+If dashboard shows wrong content:
+1. Check $dashboard_type variable
+2. Verify user role in database
+3. Check controller logic
+4. Use debug info panel
+
+If data not displaying:
+1. Check variable names match
+2. Verify data exists in controller
+3. Use ?? operator for defaults
+4. Check for typos
+
+If styling issues:
+1. Check Bootstrap classes
+2. Verify responsive breakpoints
+3. Check color variables
+4. Validate HTML structure
+
+═══════════════════════════════════════════════════════════════════════════
+END OF REFERENCE
+═══════════════════════════════════════════════════════════════════════════

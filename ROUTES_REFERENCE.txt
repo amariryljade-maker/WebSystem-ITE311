@@ -1,0 +1,399 @@
+╔════════════════════════════════════════════════════════════════════════╗
+║                    ROUTES CONFIGURATION - QUICK REFERENCE             ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+LOCATION: app/Config/Routes.php
+PURPOSE: Define all URL routes for the LMS application
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 MAIN DASHBOARD ROUTE
+═══════════════════════════════════════════════════════════════════════════
+
+✅ REQUIRED ROUTE (Step 6):
+$routes->get('/dashboard', 'Auth::dashboard');
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔐 AUTHENTICATION ROUTES
+═══════════════════════════════════════════════════════════════════════════
+
+PUBLIC ROUTES:
+├─ GET  /register          - Auth::register (form)
+├─ POST /register          - Auth::register (process)
+├─ GET  /login             - Auth::login (form)
+├─ POST /login             - Auth::login (process)
+└─ GET  /logout            - Auth::logout
+
+PROTECTED ROUTES:
+└─ GET  /dashboard         - Auth::dashboard (main dashboard)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔴 ADMIN ROUTES (Protected)
+═══════════════════════════════════════════════════════════════════════════
+
+DASHBOARD:
+├─ GET  /admin/            - Admin::dashboard
+└─ GET  /admin/dashboard   - Admin::dashboard
+
+USER MANAGEMENT:
+├─ GET  /admin/users                    - Admin::users (list)
+├─ GET  /admin/users/create             - Admin::createUser (form)
+├─ POST /admin/users/create             - Admin::createUser (process)
+├─ GET  /admin/users/edit/(:num)        - Admin::editUser/$1 (form)
+├─ POST /admin/users/edit/(:num)        - Admin::editUser/$1 (process)
+└─ GET  /admin/users/delete/(:num)      - Admin::deleteUser/$1
+
+COURSE MANAGEMENT:
+├─ GET  /admin/courses                  - Admin::courses (list)
+├─ GET  /admin/courses/create           - Admin::createCourse (form)
+├─ POST /admin/courses/create           - Admin::createCourse (process)
+├─ GET  /admin/courses/edit/(:num)      - Admin::editCourse/$1 (form)
+├─ POST /admin/courses/edit/(:num)      - Admin::editCourse/$1 (process)
+└─ GET  /admin/courses/delete/(:num)    - Admin::deleteCourse/$1
+
+REPORTS & SETTINGS:
+├─ GET  /admin/reports                  - Admin::reports (main)
+├─ GET  /admin/reports/users            - Admin::userReports
+├─ GET  /admin/reports/courses          - Admin::courseReports
+├─ GET  /admin/reports/activity         - Admin::activityReports
+├─ GET  /admin/settings                 - Admin::settings (form)
+└─ POST /admin/settings                 - Admin::updateSettings (process)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🟢 TEACHER ROUTES (Protected)
+═══════════════════════════════════════════════════════════════════════════
+
+DASHBOARD:
+├─ GET  /teacher/            - Teacher::dashboard
+└─ GET  /teacher/dashboard   - Teacher::dashboard
+
+COURSE MANAGEMENT:
+├─ GET  /teacher/courses                 - Teacher::courses (list)
+├─ GET  /teacher/courses/create          - Teacher::createCourse (form)
+├─ POST /teacher/courses/create          - Teacher::createCourse (process)
+├─ GET  /teacher/courses/edit/(:num)     - Teacher::editCourse/$1 (form)
+├─ POST /teacher/courses/edit/(:num)     - Teacher::editCourse/$1 (process)
+└─ GET  /teacher/courses/view/(:num)     - Teacher::viewCourse/$1
+
+LESSON MANAGEMENT:
+├─ GET  /teacher/lessons                 - Teacher::lessons (list)
+├─ GET  /teacher/lessons/create          - Teacher::createLesson (form)
+├─ POST /teacher/lessons/create          - Teacher::createLesson (process)
+├─ GET  /teacher/lessons/edit/(:num)     - Teacher::editLesson/$1 (form)
+└─ POST /teacher/lessons/edit/(:num)     - Teacher::editLesson/$1 (process)
+
+QUIZ MANAGEMENT:
+├─ GET  /teacher/quizzes                 - Teacher::quizzes (list)
+├─ GET  /teacher/quizzes/create          - Teacher::createQuiz (form)
+├─ POST /teacher/quizzes/create          - Teacher::createQuiz (process)
+├─ GET  /teacher/quizzes/edit/(:num)     - Teacher::editQuiz/$1 (form)
+└─ POST /teacher/quizzes/edit/(:num)     - Teacher::editQuiz/$1 (process)
+
+ASSIGNMENT MANAGEMENT:
+├─ GET  /teacher/assignments                     - Teacher::assignments (list)
+├─ GET  /teacher/assignments/create              - Teacher::createAssignment (form)
+├─ POST /teacher/assignments/create              - Teacher::createAssignment (process)
+├─ GET  /teacher/assignments/edit/(:num)         - Teacher::editAssignment/$1 (form)
+├─ POST /teacher/assignments/edit/(:num)         - Teacher::editAssignment/$1 (process)
+├─ GET  /teacher/assignments/grade/(:num)        - Teacher::gradeAssignment/$1 (form)
+└─ POST /teacher/assignments/grade/(:num)        - Teacher::gradeAssignment/$1 (process)
+
+STUDENT MANAGEMENT:
+├─ GET  /teacher/students                - Teacher::students (list)
+├─ GET  /teacher/students/view/(:num)    - Teacher::viewStudent/$1
+└─ GET  /teacher/students/grades/(:num)  - Teacher::studentGrades/$1
+
+═══════════════════════════════════════════════════════════════════════════
+
+🟡 INSTRUCTOR ROUTES (Protected)
+═══════════════════════════════════════════════════════════════════════════
+
+DASHBOARD:
+├─ GET  /instructor/            - Instructor::dashboard
+└─ GET  /instructor/dashboard   - Instructor::dashboard
+
+COURSE MANAGEMENT:
+├─ GET  /instructor/courses                 - Instructor::courses (list)
+├─ GET  /instructor/courses/create          - Instructor::createCourse (form)
+├─ POST /instructor/courses/create          - Instructor::createCourse (process)
+├─ GET  /instructor/courses/edit/(:num)     - Instructor::editCourse/$1 (form)
+├─ POST /instructor/courses/edit/(:num)     - Instructor::editCourse/$1 (process)
+└─ GET  /instructor/courses/view/(:num)     - Instructor::viewCourse/$1
+
+RESOURCE MANAGEMENT:
+├─ GET  /instructor/resources               - Instructor::resources (list)
+├─ GET  /instructor/resources/upload        - Instructor::uploadResource (form)
+├─ POST /instructor/resources/upload        - Instructor::uploadResource (process)
+├─ GET  /instructor/resources/edit/(:num)   - Instructor::editResource/$1 (form)
+├─ POST /instructor/resources/edit/(:num)   - Instructor::editResource/$1 (process)
+└─ GET  /instructor/resources/delete/(:num) - Instructor::deleteResource/$1
+
+SCHEDULE MANAGEMENT:
+├─ GET  /instructor/schedule                - Instructor::schedule (list)
+├─ GET  /instructor/schedule/create         - Instructor::createSchedule (form)
+├─ POST /instructor/schedule/create         - Instructor::createSchedule (process)
+├─ GET  /instructor/schedule/edit/(:num)    - Instructor::editSchedule/$1 (form)
+└─ POST /instructor/schedule/edit/(:num)    - Instructor::editSchedule/$1 (process)
+
+ASSIGNMENT & STUDENT MANAGEMENT:
+├─ GET  /instructor/assignments             - Instructor::assignments (list)
+├─ GET  /instructor/assignments/create      - Instructor::createAssignment (form)
+├─ POST /instructor/assignments/create      - Instructor::createAssignment (process)
+├─ GET  /instructor/assignments/edit/(:num) - Instructor::editAssignment/$1 (form)
+├─ POST /instructor/assignments/edit/(:num) - Instructor::editAssignment/$1 (process)
+├─ GET  /instructor/students                - Instructor::students (list)
+└─ GET  /instructor/students/view/(:num)    - Instructor::viewStudent/$1
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔵 STUDENT ROUTES (Protected)
+═══════════════════════════════════════════════════════════════════════════
+
+DASHBOARD:
+├─ GET  /student/            - Student::dashboard
+└─ GET  /student/dashboard   - Student::dashboard
+
+COURSE MANAGEMENT:
+├─ GET  /student/courses                   - Student::courses (list)
+├─ GET  /student/courses/enroll            - Student::enrollCourses (form)
+├─ POST /student/courses/enroll            - Student::enrollCourses (process)
+└─ GET  /student/courses/view/(:num)       - Student::viewCourse/$1
+
+ASSIGNMENT MANAGEMENT:
+├─ GET  /student/assignments               - Student::assignments (list)
+├─ GET  /student/assignments/view/(:num)   - Student::viewAssignment/$1
+├─ GET  /student/assignments/submit/(:num) - Student::submitAssignment/$1 (form)
+└─ POST /student/assignments/submit/(:num) - Student::submitAssignment/$1 (process)
+
+QUIZ MANAGEMENT:
+├─ GET  /student/quizzes                   - Student::quizzes (list)
+├─ GET  /student/quizzes/take/(:num)       - Student::takeQuiz/$1 (form)
+├─ POST /student/quizzes/take/(:num)       - Student::takeQuiz/$1 (process)
+└─ GET  /student/quizzes/result/(:num)     - Student::quizResult/$1
+
+GRADES & PROGRESS:
+├─ GET  /student/grades                    - Student::grades (list)
+├─ GET  /student/grades/course/(:num)      - Student::courseGrades/$1
+├─ GET  /student/progress                  - Student::progress (overview)
+└─ GET  /student/progress/course/(:num)    - Student::courseProgress/$1
+
+═══════════════════════════════════════════════════════════════════════════
+
+👤 COMMON ROUTES (Protected)
+═══════════════════════════════════════════════════════════════════════════
+
+PROFILE MANAGEMENT:
+├─ GET  /profile                    - Profile::index
+├─ GET  /profile/edit               - Profile::edit (form)
+├─ POST /profile/edit               - Profile::edit (process)
+├─ GET  /profile/change-password    - Profile::changePassword (form)
+└─ POST /profile/change-password    - Profile::changePassword (process)
+
+NOTIFICATIONS:
+├─ GET  /notifications                      - Notification::index
+├─ GET  /notifications/mark-read/(:num)     - Notification::markRead/$1
+└─ GET  /notifications/mark-all-read        - Notification::markAllRead
+
+HELP & SUPPORT:
+├─ GET  /help                      - Help::index
+├─ GET  /help/faq                  - Help::faq
+├─ GET  /help/contact              - Help::contact (form)
+└─ POST /help/contact              - Help::contact (process)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🌐 PUBLIC ROUTES
+═══════════════════════════════════════════════════════════════════════════
+
+COURSE BROWSING:
+├─ GET  /courses                    - Course::browse (public course list)
+├─ GET  /courses/view/(:num)        - Course::view/$1 (public course view)
+└─ GET  /courses/category/(:any)    - Course::category/$1 (courses by category)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔌 API ROUTES (Protected)
+═══════════════════════════════════════════════════════════════════════════
+
+NOTIFICATION API:
+├─ GET  /api/notifications/unread-count - Api::getUnreadNotificationCount
+└─ POST /api/notifications/mark-read    - Api::markNotificationRead
+
+USER API:
+├─ GET  /api/user/profile           - Api::getUserProfile
+└─ POST /api/user/update-profile    - Api::updateUserProfile
+
+DASHBOARD API:
+└─ GET  /api/dashboard/stats        - Api::getDashboardStats
+
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ ERROR ROUTES
+═══════════════════════════════════════════════════════════════════════════
+
+ERROR HANDLING:
+├─ 404 Override: Custom 404 page
+├─ Default Controller: Home
+└─ Default Method: index
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔒 SECURITY FEATURES
+═══════════════════════════════════════════════════════════════════════════
+
+AUTHENTICATION FILTERS:
+├─ ['filter' => 'auth'] - Protects routes requiring login
+├─ Applied to all role-specific routes
+├─ Applied to common routes
+└─ Applied to API routes
+
+PARAMETER VALIDATION:
+├─ (:num) - Numeric parameters only
+├─ (:any) - Any string parameters
+└─ Prevents invalid parameter types
+
+═══════════════════════════════════════════════════════════════════════════
+
+📊 NAVIGATION TO ROUTE MAPPING
+═══════════════════════════════════════════════════════════════════════════
+
+ADMIN NAVIGATION:
+├─ Manage Users    → /admin/users
+├─ Manage Courses  → /admin/courses
+├─ Reports         → /admin/reports
+└─ System Settings → /admin/settings
+
+TEACHER NAVIGATION:
+├─ My Courses      → /teacher/courses
+├─ Lessons         → /teacher/lessons
+├─ Quizzes         → /teacher/quizzes
+├─ Assignments     → /teacher/assignments
+└─ My Students     → /teacher/students
+
+INSTRUCTOR NAVIGATION:
+├─ My Courses      → /instructor/courses
+├─ Resources       → /instructor/resources
+├─ Schedule        → /instructor/schedule
+├─ Assignments     → /instructor/assignments
+└─ My Students     → /instructor/students
+
+STUDENT NAVIGATION:
+├─ My Courses      → /student/courses
+├─ Assignments     → /student/assignments
+├─ Quizzes         → /student/quizzes
+├─ Grades          → /student/grades
+└─ Progress        → /student/progress
+
+═══════════════════════════════════════════════════════════════════════════
+
+🧪 TESTING CHECKLIST
+═══════════════════════════════════════════════════════════════════════════
+
+AUTHENTICATION ROUTES:
+□ GET  /login (public - should work)
+□ GET  /register (public - should work)
+□ GET  /dashboard (protected - should redirect to login)
+□ GET  /logout (should work when logged in)
+
+ADMIN ROUTES:
+□ GET  /admin/users (should work for admin only)
+□ GET  /admin/courses (should work for admin only)
+□ GET  /admin/reports (should work for admin only)
+□ GET  /admin/settings (should work for admin only)
+
+TEACHER ROUTES:
+□ GET  /teacher/courses (should work for teacher only)
+□ GET  /teacher/lessons (should work for teacher only)
+□ GET  /teacher/quizzes (should work for teacher only)
+□ GET  /teacher/assignments (should work for teacher only)
+□ GET  /teacher/students (should work for teacher only)
+
+INSTRUCTOR ROUTES:
+□ GET  /instructor/courses (should work for instructor only)
+□ GET  /instructor/resources (should work for instructor only)
+□ GET  /instructor/schedule (should work for instructor only)
+□ GET  /instructor/assignments (should work for instructor only)
+□ GET  /instructor/students (should work for instructor only)
+
+STUDENT ROUTES:
+□ GET  /student/courses (should work for student only)
+□ GET  /student/assignments (should work for student only)
+□ GET  /student/quizzes (should work for student only)
+□ GET  /student/grades (should work for student only)
+□ GET  /student/progress (should work for student only)
+
+COMMON ROUTES:
+□ GET  /profile (should work for all authenticated users)
+□ GET  /notifications (should work for all authenticated users)
+□ GET  /help (should work for all authenticated users)
+
+PUBLIC ROUTES:
+□ GET  /courses (should work without login)
+□ GET  /courses/view/1 (should work without login)
+□ GET  /courses/category/programming (should work without login)
+
+API ROUTES:
+□ GET  /api/dashboard/stats (should work for authenticated users)
+□ GET  /api/notifications/unread-count (should work for authenticated users)
+□ GET  /api/user/profile (should work for authenticated users)
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 ROUTE CREATION TIPS
+═══════════════════════════════════════════════════════════════════════════
+
+ADD NEW ROUTE:
+1. Choose appropriate route group
+2. Use RESTful URL patterns
+3. Apply authentication filter if needed
+4. Use parameter validation (:num, :any)
+5. Test the route thoroughly
+
+ROUTE GROUP STRUCTURE:
+$routes->group('prefix', ['filter' => 'auth'], function($routes) {
+    $routes->get('path', 'Controller::method');
+    $routes->post('path', 'Controller::method');
+});
+
+PARAMETER TYPES:
+├─ (:num) - Numeric only (e.g., user ID)
+├─ (:any) - Any string (e.g., category name)
+└─ (:segment) - URL segment (e.g., slug)
+
+FILTERS:
+├─ ['filter' => 'auth'] - Requires authentication
+├─ ['filter' => 'role:admin'] - Requires specific role
+└─ ['filter' => 'permission:manage_users'] - Requires specific permission
+
+═══════════════════════════════════════════════════════════════════════════
+
+📍 QUICK DEBUGGING
+═══════════════════════════════════════════════════════════════════════════
+
+If route not working:
+1. Check route syntax in Routes.php
+2. Verify controller and method exist
+3. Check authentication requirements
+4. Test with different user roles
+5. Check URL parameters
+
+If 404 error:
+1. Verify route is defined
+2. Check URL spelling
+3. Verify parameter types
+4. Check route group structure
+5. Test with different HTTP methods
+
+If authentication error:
+1. Check if user is logged in
+2. Verify user role permissions
+3. Check filter configuration
+4. Test with different user types
+5. Verify session data
+
+═══════════════════════════════════════════════════════════════════════════
+END OF REFERENCE
+═══════════════════════════════════════════════════════════════════════════
