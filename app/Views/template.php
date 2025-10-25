@@ -74,6 +74,7 @@
             border-bottom: 1px solid var(--border-color);
             padding: 1rem 0;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .navbar-brand {
@@ -125,6 +126,39 @@
         .dropdown-item:hover {
             background-color: rgba(99, 102, 241, 0.1);
             color: var(--primary-color);
+        }
+
+        .dropdown-header {
+            padding: 0.75rem 1rem;
+            background-color: rgba(99, 102, 241, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .navbar .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .nav-link .badge {
+            margin-left: 0.5rem;
+        }
+
+        /* Role-specific navigation colors */
+        .nav-link.text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .nav-link.text-info {
+            color: #06b6d4 !important;
+        }
+
+        .nav-link.text-warning {
+            color: var(--warning-color) !important;
+        }
+
+        .nav-link.text-success {
+            color: var(--success-color) !important;
         }
 
         /* Buttons */
@@ -539,124 +573,152 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <!-- Common Navigation Items -->
+                    <!-- Always visible navigation items -->
                     <li class="nav-item">
                         <a class="nav-link" href="<?= base_url() ?>">
                             <i class="bi bi-house me-2"></i>Home
                         </a>
                     </li>
                     
+                    <!-- Role-specific navigation items -->
                     <?php if (is_user_logged_in()): ?>
-                        <!-- Logged-in User Navigation -->
+                        <?php $userRole = get_user_role(); ?>
+                        
+                        <!-- Dashboard link for all logged-in users -->
                         <li class="nav-item">
                             <a class="nav-link" href="<?= base_url('dashboard') ?>">
                                 <i class="bi bi-speedometer2 me-2"></i>Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= base_url('announcements') ?>">
-                                <i class="bi bi-megaphone me-2"></i>Announcements
-                            </a>
-                        </li>
                         
-                        <?php 
-                        // Get user role from session
-                        $userRole = session()->get('user_role');
-                        ?>
-                        
-                        <!-- Admin-Specific Navigation -->
+                        <!-- Admin Navigation -->
                         <?php if ($userRole === 'admin'): ?>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-shield-lock me-2"></i>Admin
+                                    <i class="bi bi-gear me-2"></i>Admin
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><h6 class="dropdown-header">System Management</h6></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/users') ?>">
                                         <i class="bi bi-people me-2"></i>Manage Users
                                     </a></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/courses') ?>">
                                         <i class="bi bi-book me-2"></i>Manage Courses
                                     </a></li>
-                                    <li><a class="dropdown-item" href="<?= base_url('admin/announcements') ?>">
-                                        <i class="bi bi-megaphone me-2"></i>Manage Announcements
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/reports') ?>">
-                                        <i class="bi bi-graph-up me-2"></i>View Reports
+                                        <i class="bi bi-graph-up me-2"></i>Reports
                                     </a></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/settings') ?>">
-                                        <i class="bi bi-gear me-2"></i>System Settings
+                                        <i class="bi bi-sliders me-2"></i>System Settings
                                     </a></li>
                                 </ul>
                             </li>
                         <?php endif; ?>
                         
-                        <!-- Teacher/Instructor-Specific Navigation -->
-                        <?php if ($userRole === 'teacher' || $userRole === 'instructor'): ?>
+                        <!-- Teacher Navigation -->
+                        <?php if ($userRole === 'teacher'): ?>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-workspace me-2"></i>Teaching
+                                    <i class="bi bi-person-badge me-2"></i>Teaching
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="teacherDropdown">
-                                    <li><h6 class="dropdown-header">Course Management</h6></li>
                                     <li><a class="dropdown-item" href="<?= base_url('teacher/courses') ?>">
                                         <i class="bi bi-book me-2"></i>My Courses
                                     </a></li>
-                                    <li><a class="dropdown-item" href="<?= base_url('teacher/courses/create') ?>">
-                                        <i class="bi bi-plus-circle me-2"></i>Create Course
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">Content</h6></li>
                                     <li><a class="dropdown-item" href="<?= base_url('teacher/lessons') ?>">
                                         <i class="bi bi-journal-text me-2"></i>Lessons
                                     </a></li>
                                     <li><a class="dropdown-item" href="<?= base_url('teacher/quizzes') ?>">
                                         <i class="bi bi-question-circle me-2"></i>Quizzes
                                     </a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('teacher/assignments') ?>">
+                                        <i class="bi bi-clipboard-check me-2"></i>Assignments
+                                    </a></li>
                                     <li><a class="dropdown-item" href="<?= base_url('teacher/students') ?>">
                                         <i class="bi bi-people me-2"></i>My Students
                                     </a></li>
-                                    <li><a class="dropdown-item" href="<?= base_url('teacher/submissions') ?>">
-                                        <i class="bi bi-clipboard-check me-2"></i>Submissions
+                                </ul>
+                            </li>
+                        <?php endif; ?>
+                        
+                        <!-- Instructor Navigation -->
+                        <?php if ($userRole === 'instructor'): ?>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="instructorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-workspace me-2"></i>Instructing
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="instructorDropdown">
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/courses') ?>">
+                                        <i class="bi bi-book me-2"></i>My Courses
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/resources') ?>">
+                                        <i class="bi bi-file-earmark me-2"></i>Resources
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/schedule') ?>">
+                                        <i class="bi bi-calendar me-2"></i>Schedule
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/assignments') ?>">
+                                        <i class="bi bi-clipboard me-2"></i>Assignments
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/students') ?>">
+                                        <i class="bi bi-people me-2"></i>My Students
                                     </a></li>
                                 </ul>
                             </li>
                         <?php endif; ?>
                         
-                        <!-- Student-Specific Navigation -->
+                        <!-- Student Navigation -->
                         <?php if ($userRole === 'student'): ?>
-                            <li class="nav-item">
-                                <a class="nav-link" href="<?= base_url('courses') ?>">
-                                    <i class="bi bi-book me-2"></i>Browse Courses
-                                </a>
-                            </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-mortarboard me-2"></i>My Learning
+                                    <i class="bi bi-mortarboard me-2"></i>Learning
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="studentDropdown">
-                                    <li><h6 class="dropdown-header">Enrolled Courses</h6></li>
                                     <li><a class="dropdown-item" href="<?= base_url('student/courses') ?>">
                                         <i class="bi bi-book me-2"></i>My Courses
                                     </a></li>
-                                    <li><a class="dropdown-item" href="<?= base_url('student/progress') ?>">
-                                        <i class="bi bi-graph-up me-2"></i>My Progress
+                                    <li><a class="dropdown-item" href="<?= base_url('student/assignments') ?>">
+                                        <i class="bi bi-clipboard me-2"></i>Assignments
                                     </a></li>
-                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="<?= base_url('student/quizzes') ?>">
-                                        <i class="bi bi-question-circle me-2"></i>My Quizzes
+                                        <i class="bi bi-question-circle me-2"></i>Quizzes
                                     </a></li>
-                                    <li><a class="dropdown-item" href="<?= base_url('student/achievements') ?>">
-                                        <i class="bi bi-trophy me-2"></i>Achievements
+                                    <li><a class="dropdown-item" href="<?= base_url('student/grades') ?>">
+                                        <i class="bi bi-graph-up me-2"></i>Grades
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('student/progress') ?>">
+                                        <i class="bi bi-bar-chart me-2"></i>Progress
                                     </a></li>
                                 </ul>
                             </li>
                         <?php endif; ?>
                         
+                        <!-- Common navigation for all roles -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="commonDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-grid me-2"></i>More
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="commonDropdown">
+                                <li><a class="dropdown-item" href="<?= base_url('profile') ?>">
+                                    <i class="bi bi-person-circle me-2"></i>Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="<?= base_url('notifications') ?>">
+                                    <i class="bi bi-bell me-2"></i>Notifications
+                                </a></li>
+                                <li><a class="dropdown-item" href="<?= base_url('help') ?>">
+                                    <i class="bi bi-question-circle me-2"></i>Help & Support
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="<?= base_url('about') ?>">
+                                    <i class="bi bi-info-circle me-2"></i>About
+                                </a></li>
+                                <li><a class="dropdown-item" href="<?= base_url('contact') ?>">
+                                    <i class="bi bi-envelope me-2"></i>Contact
+                                </a></li>
+                            </ul>
+                        </li>
+                        
                     <?php else: ?>
-                        <!-- Guest Navigation -->
+                        <!-- Public navigation for non-logged-in users -->
                         <li class="nav-item">
                             <a class="nav-link" href="<?= base_url('about') ?>">
                                 <i class="bi bi-info-circle me-2"></i>About
@@ -667,46 +729,97 @@
                                 <i class="bi bi-envelope me-2"></i>Contact
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= base_url('courses') ?>">
+                                <i class="bi bi-book me-2"></i>Browse Courses
+                            </a>
+                        </li>
                     <?php endif; ?>
                 </ul>
                 
                 <!-- Authentication Navigation -->
                 <ul class="navbar-nav">
                     <?php if (is_user_logged_in()): ?>
-                        <!-- User Profile Dropdown -->
+                        <?php 
+                        $userRole = get_user_role();
+                        $roleIcon = $userRole === 'admin' ? 'bi-shield-check' : 
+                                   ($userRole === 'teacher' ? 'bi-person-badge' : 
+                                   ($userRole === 'instructor' ? 'bi-person-workspace' : 'bi-mortarboard'));
+                        $roleColor = $userRole === 'admin' ? 'primary' : 
+                                    ($userRole === 'teacher' ? 'info' : 
+                                    ($userRole === 'instructor' ? 'warning' : 'success'));
+                        ?>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle me-2"></i>
-                                <span class="d-none d-lg-inline"><?= get_user_name() ?></span>
-                                <?php 
-                                $userRole = session()->get('user_role');
-                                $roleColors = [
-                                    'admin' => 'danger',
-                                    'teacher' => 'success',
-                                    'instructor' => 'info',
-                                    'student' => 'warning'
-                                ];
-                                $badgeColor = $roleColors[$userRole] ?? 'secondary';
-                                ?>
-                                <span class="badge bg-<?= $badgeColor ?> ms-2"><?= ucfirst($userRole ?? 'User') ?></span>
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi <?= $roleIcon ?> me-2 text-<?= $roleColor ?>"></i>
+                                <span class="me-2"><?= get_user_name() ?></span>
+                                <span class="badge bg-<?= $roleColor ?> small"><?= ucfirst($userRole) ?></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><div class="dropdown-header">
-                                    <strong><?= get_user_name() ?></strong><br>
-                                    <small class="text-muted"><?= get_user_email() ?></small>
-                                </div></li>
+                                <!-- User Info Header -->
+                                <li class="dropdown-header">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi <?= $roleIcon ?> me-2 text-<?= $roleColor ?>"></i>
+                                        <div>
+                                            <div class="fw-bold"><?= get_user_name() ?></div>
+                                            <small class="text-muted"><?= get_user_email() ?></small>
+                                        </div>
+                                    </div>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Quick Actions -->
                                 <li><a class="dropdown-item" href="<?= base_url('dashboard') ?>">
                                     <i class="bi bi-speedometer2 me-2"></i>Dashboard
                                 </a></li>
                                 <li><a class="dropdown-item" href="<?= base_url('profile') ?>">
-                                    <i class="bi bi-person me-2"></i>My Profile
+                                    <i class="bi bi-person-circle me-2"></i>My Profile
                                 </a></li>
-                                <li><a class="dropdown-item" href="<?= base_url('settings') ?>">
-                                    <i class="bi bi-gear me-2"></i>Settings
+                                <li><a class="dropdown-item" href="<?= base_url('notifications') ?>">
+                                    <i class="bi bi-bell me-2"></i>Notifications
+                                    <span class="badge bg-danger ms-2">3</span>
                                 </a></li>
+                                
+                                <!-- Role-specific quick actions -->
+                                <?php if ($userRole === 'admin'): ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('admin/users') ?>">
+                                        <i class="bi bi-people me-2"></i>Manage Users
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('admin/reports') ?>">
+                                        <i class="bi bi-graph-up me-2"></i>View Reports
+                                    </a></li>
+                                <?php elseif ($userRole === 'teacher'): ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('teacher/courses') ?>">
+                                        <i class="bi bi-book me-2"></i>My Courses
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('teacher/students') ?>">
+                                        <i class="bi bi-people me-2"></i>My Students
+                                    </a></li>
+                                <?php elseif ($userRole === 'instructor'): ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/courses') ?>">
+                                        <i class="bi bi-book me-2"></i>My Courses
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('instructor/schedule') ?>">
+                                        <i class="bi bi-calendar me-2"></i>Schedule
+                                    </a></li>
+                                <?php elseif ($userRole === 'student'): ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('student/courses') ?>">
+                                        <i class="bi bi-book me-2"></i>My Courses
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('student/grades') ?>">
+                                        <i class="bi bi-graph-up me-2"></i>My Grades
+                                    </a></li>
+                                <?php endif; ?>
+                                
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="<?= base_url('logout') ?>" 
+                                <li><a class="dropdown-item" href="<?= base_url('help') ?>">
+                                    <i class="bi bi-question-circle me-2"></i>Help & Support
+                                </a></li>
+                                <li><a class="dropdown-item" href="<?= base_url('logout') ?>" 
                                        onclick="return confirm('Are you sure you want to logout?')">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </a></li>
@@ -729,8 +842,36 @@
         </div>
     </nav>
 
+    <!-- Breadcrumb Section -->
+    <?php if (is_user_logged_in() && isset($breadcrumbs) && !empty($breadcrumbs)): ?>
+        <nav aria-label="breadcrumb" class="bg-light border-bottom" style="margin-top: 80px; padding: 1rem 0;">
+            <div class="container">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        <a href="<?= base_url('dashboard') ?>" class="text-decoration-none">
+                            <i class="bi bi-house me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <?php foreach ($breadcrumbs as $breadcrumb): ?>
+                        <?php if (isset($breadcrumb['url'])): ?>
+                            <li class="breadcrumb-item">
+                                <a href="<?= base_url($breadcrumb['url']) ?>" class="text-decoration-none">
+                                    <?= esc($breadcrumb['title']) ?>
+                                </a>
+                            </li>
+                        <?php else: ?>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                <?= esc($breadcrumb['title']) ?>
+                            </li>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </ol>
+            </div>
+        </nav>
+    <?php endif; ?>
+
     <!-- Main Content -->
-    <main class="main-content" style="margin-top: 80px;">
+    <main class="main-content" style="margin-top: <?= is_user_logged_in() && isset($breadcrumbs) && !empty($breadcrumbs) ? '140px' : '80px' ?>;">
         <?= $this->renderSection('content') ?>
     </main>
 
@@ -817,7 +958,52 @@
                 navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
             } else {
                 navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-                navbar.style.boxShadow = 'none';
+                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
+            }
+        });
+
+        // Enhanced navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+                dropdowns.forEach(dropdown => {
+                    if (!dropdown.closest('.dropdown').contains(event.target)) {
+                        dropdown.classList.remove('show');
+                    }
+                });
+            });
+
+            // Add active class to current page navigation
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link, .dropdown-item');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath.includes(href.replace('<?= base_url() ?>', ''))) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Mobile navigation enhancement
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            const navbarCollapse = document.querySelector('.navbar-collapse');
+            
+            if (navbarToggler && navbarCollapse) {
+                navbarToggler.addEventListener('click', function() {
+                    navbarCollapse.classList.toggle('show');
+                });
+            }
+
+            // Notification badge animation
+            const notificationBadge = document.querySelector('.badge.bg-danger');
+            if (notificationBadge) {
+                setInterval(function() {
+                    notificationBadge.style.transform = 'scale(1.1)';
+                    setTimeout(function() {
+                        notificationBadge.style.transform = 'scale(1)';
+                    }, 200);
+                }, 3000);
             }
         });
     </script>
