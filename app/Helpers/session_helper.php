@@ -156,8 +156,14 @@ if (!function_exists('logout_user')) {
      */
     function logout_user($redirect_url = '/login')
     {
-        session()->destroy();
+        // Set flash data before destroying session
         session()->setFlashdata('success', 'You have been successfully logged out.');
+        
+        // Destroy the session
+        if (session()->has('logged_in')) {
+            session()->destroy();
+        }
+        
         return redirect()->to($redirect_url);
     }
 }
@@ -197,7 +203,16 @@ if (!function_exists('check_session_timeout')) {
     {
         $timeout = session()->get('session_timeout');
         if ($timeout && time() > $timeout) {
-            logout_user();
+            // Set flash data before destroying session
+            session()->setFlashdata('info', 'Your session has expired due to inactivity. Please log in again.');
+            
+            // Destroy the session only if it exists
+            if (session()->has('logged_in')) {
+                session()->destroy();
+            }
+            
+            // Redirect to login
+            redirect()->to('/login');
             return true;
         }
         return false;

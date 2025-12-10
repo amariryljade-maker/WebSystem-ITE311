@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Libraries\AppLogger;
 
 class Auth extends BaseController
 {
@@ -85,13 +86,16 @@ class Auth extends BaseController
                 $userId = $this->userModel->insert($userData);
                 
                 if ($userId) {
+                    AppLogger::info("User registration successful", ['email' => $userData['email'], 'user_id' => $userId]);
                     // Registration successful
                     session()->setFlashdata('success', 'Registration successful! Please log in.');
                     return redirect()->to('/login');
                 } else {
+                    AppLogger::error("User registration failed - no ID returned", ['email' => $userData['email']]);
                     session()->setFlashdata('error', 'Registration failed. Please try again.');
                 }
             } catch (\Exception $e) {
+                AppLogger::exception($e, ['email' => $userData['email']]);
                 session()->setFlashdata('error', 'An error occurred during registration. Please try again.');
             }
         }
@@ -116,24 +120,58 @@ class Auth extends BaseController
         }
 
         if ($this->request->getMethod() === 'post') {
-            // Validate form data
-            $rules = [
-                'email' => 'required|valid_email',
-                'password' => 'required'
-            ];
+            // Enhanced security: CSRF token validation
+            $csrfToken = $this->request->getPost('csrf_test_name');
+            if (!$csrfToken || !csrf_hash() === $csrfToken) {
+                log_message('warning', 'CSRF attack detected on login form from IP: ' . $this->request->getIPAddress());
+                session()->setFlashdata('error', 'Security token expired. Please try again.');
+                return redirect()->to('/login');
+            }
 
-            $messages = [
+            // Rate limiting: Check for too many login attempts
+            $ipAddress = $this->request->getIPAddress();
+            $sessionKey = 'login_attempts_' . str_replace('.', '_', $ipAddress);
+            $attempts = session()->get($sessionKey) ?: ['count' => 0, 'first_attempt' => time()];
+            
+            // Reset attempts if 15 minutes have passed
+            if (time() - $attempts['first_attempt'] > 900) {
+                $attempts = ['count' => 0, 'first_attempt' => time()];
+            }
+            
+            // Block if too many attempts
+            if ($attempts['count'] >= 5) {
+                log_message('warning', 'Rate limit exceeded for IP: ' . $ipAddress);
+                session()->setFlashdata('error', 'Too many login attempts. Please try again in 15 minutes.');
+                return redirect()->to('/login');
+            }
+
+            // Enhanced validation with sanitization
+            $rules = [
                 'email' => [
-                    'required' => 'Email is required',
-                    'valid_email' => 'Please enter a valid email address'
+                    'rules' => 'required|valid_email|max_length[255]|regex_match[/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/]',
+                    'errors' => [
+                        'required' => 'Email is required',
+                        'valid_email' => 'Please enter a valid email address',
+                        'max_length' => 'Email cannot exceed 255 characters',
+                        'regex_match' => 'Please enter a valid email format'
+                    ]
                 ],
                 'password' => [
-                    'required' => 'Password is required'
+                    'rules' => 'required|min_length[1]|max_length[255]',
+                    'errors' => [
+                        'required' => 'Password is required',
+                        'min_length' => 'Password is required',
+                        'max_length' => 'Password is too long'
+                    ]
                 ]
             ];
 
-            if (!$this->validate($rules, $messages)) {
-                // Validation failed, show form with errors
+            if (!$this->validate($rules)) {
+                // Increment failed attempts on validation failure
+                $attempts['count']++;
+                session()->set($sessionKey, $attempts);
+                log_message('warning', 'Login validation failed for IP: ' . $ipAddress);
+                
                 $data = [
                     'title' => 'Login',
                     'validation' => $this->validator,
@@ -142,13 +180,21 @@ class Auth extends BaseController
                 return view('auth/login', $data);
             }
 
-            // Validation passed, attempt login
-            $email = $this->request->getPost('email');
+            // Enhanced input sanitization
+            $email = strtolower(trim($this->request->getPost('email')));
             $password = $this->request->getPost('password');
+
+            // Log login attempt for security monitoring
+            log_message('info', "Login attempt: Email = {$email}, IP = {$ipAddress}");
 
             $user = $this->userModel->where('email', $email)->first();
 
             if ($user && password_verify($password, $user['password'])) {
+                // Reset failed attempts on successful login
+                session()->remove($sessionKey);
+                
+                AppLogger::loginAttempt($email, true, $this->request->getIPAddress(), $this->request->getUserAgent(), $user['id']);
+                
                 // Login successful - create session with user data and role
                 $sessionData = [
                     'user_id' => $user['id'],
@@ -175,7 +221,14 @@ class Auth extends BaseController
                 // Role-based content is handled in the dashboard() method
                 return redirect()->to('/dashboard');
             } else {
-                // Login failed
+                // Increment failed attempts on login failure
+                $attempts['count']++;
+                session()->set($sessionKey, $attempts);
+                
+                AppLogger::loginAttempt($email, false, $this->request->getIPAddress(), $this->request->getUserAgent());
+                log_message('warning', "Login failed: Email = {$email}, IP = {$ipAddress}, Attempt = {$attempts['count']}");
+                
+                // Generic error message for security
                 session()->setFlashdata('error', 'Invalid email or password.');
             }
         }

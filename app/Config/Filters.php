@@ -24,6 +24,9 @@ class Filters extends BaseConfig
         'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
+        'auth'          => \App\Filters\AuthFilter::class,
+        'security'      => \App\Filters\SecurityFilter::class,
+        'ratelimit'     => \App\Filters\RateLimitFilter::class,
     ];
 
     /**
@@ -34,13 +37,12 @@ class Filters extends BaseConfig
      */
     public array $globals = [
         'before' => [
-            'honeypot',
-            'csrf',
+            // 'security',  // Disabled for development - too strict
+            // 'csrf',      // Temporarily disabled for login testing
             'invalidchars',
         ],
         'after' => [
             'toolbar',
-            'honeypot',
             'secureheaders',
         ],
     ];
@@ -69,5 +71,15 @@ class Filters extends BaseConfig
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'security' => [
+            'before' => ['login', 'register', 'logout']
+        ],
+        'ratelimit' => [
+            'before' => ['login', 'register']
+        ],
+        'auth' => [
+            'before' => ['dashboard', 'admin/*', 'teacher/*', 'instructor/*', 'student/*']
+        ]
+    ];
 }

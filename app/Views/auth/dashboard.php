@@ -140,6 +140,9 @@
                                     <i class="bi bi-graph-up me-2"></i>View Reports
                                 </button>
                             <?php endif; ?>
+                            <a href="<?= base_url('logs') ?>" class="btn btn-outline-danger">
+                                <i class="bi bi-file-text me-2"></i>View Logs
+                            </a>
                             <?php if ($permissions['can_manage_settings']): ?>
                                 <button class="btn btn-outline-secondary">
                                     <i class="bi bi-sliders me-2"></i>System Settings
@@ -484,6 +487,47 @@
             </div>
         </div>
 
+        <!-- Course Enrollment Sections -->
+        <div class="row g-4 mb-5">
+            <!-- Enrolled Courses -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-success bg-opacity-10 border-0">
+                        <h5 class="mb-0 text-success">
+                            <i class="bi bi-book-fill me-2"></i>My Enrolled Courses
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="enrolled-courses-container">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+                                <span class="text-muted">Loading your courses...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Courses -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary bg-opacity-10 border-0">
+                        <h5 class="mb-0 text-primary">
+                            <i class="bi bi-search me-2"></i>Available Courses
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="available-courses-container">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                <span class="text-muted">Loading available courses...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Student Actions & Teachers -->
         <div class="row g-4">
             <div class="col-md-6">
@@ -701,6 +745,257 @@ function toggleDebugInfo() {
     } else {
         debugInfo.style.display = 'none';
     }
+}
+
+// Course Enrollment AJAX functionality
+$(document).ready(function() {
+    // Only load enrollment data for student dashboard
+    <?php if ($dashboard_type === 'student'): ?>
+        loadEnrolledCourses();
+        loadAvailableCourses();
+    <?php endif; ?>
+});
+
+function loadEnrolledCourses() {
+    $.ajax({
+        url: '<?= base_url('course/get-enrolled-courses') ?>',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                displayEnrolledCourses(response.courses);
+            } else {
+                $('#enrolled-courses-container').html(
+                    '<div class="alert alert-warning">' +
+                    '<i class="bi bi-exclamation-triangle me-2"></i>' +
+                    'Unable to load enrolled courses. Please refresh the page.' +
+                    '</div>'
+                );
+            }
+        },
+        error: function() {
+            $('#enrolled-courses-container').html(
+                '<div class="alert alert-danger">' +
+                '<i class="bi bi-x-circle me-2"></i>' +
+                'Error loading courses. Please check your connection.' +
+                '</div>'
+            );
+        }
+    });
+}
+
+function displayEnrolledCourses(courses) {
+    const container = $('#enrolled-courses-container');
+    
+    if (!courses || courses.length === 0) {
+        container.html(
+            '<div class="text-center py-4">' +
+            '<i class="bi bi-book text-muted" style="font-size: 3rem;"></i>' +
+            '<p class="text-muted mt-3">You haven\'t enrolled in any courses yet.</p>' +
+            '<p class="text-muted small">Browse available courses and start learning!</p>' +
+            '</div>'
+        );
+        return;
+    }
+    
+    let html = '<div class="list-group list-group-flush">';
+    
+    courses.forEach(function(course) {
+        html += `
+            <div class="list-group-item border-0 px-0 py-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold">${course.title}</h6>
+                        <p class="text-muted small mb-2">${course.description || 'No description available'}</p>
+                        <div class="d-flex gap-3 small text-muted">
+                            <span><i class="bi bi-calendar me-1"></i>Enrolled: ${new Date(course.enrollment_date).toLocaleDateString()}</span>
+                            <span><i class="bi bi-clock me-1"></i>${course.duration || 'Self-paced'}</span>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <button class="btn btn-outline-danger btn-sm" onclick="dropCourse(${course.course_id})" title="Drop Course">
+                            <i class="bi bi-x-circle me-1"></i>Drop
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.html(html);
+}
+
+function loadAvailableCourses() {
+    $.ajax({
+        url: '<?= base_url('course/get-available-courses') ?>',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                displayAvailableCourses(response.courses);
+            } else {
+                $('#available-courses-container').html(
+                    '<div class="alert alert-warning">' +
+                    '<i class="bi bi-exclamation-triangle me-2"></i>' +
+                    'Unable to load available courses. Please refresh the page.' +
+                    '</div>'
+                );
+            }
+        },
+        error: function() {
+            $('#available-courses-container').html(
+                '<div class="alert alert-danger">' +
+                '<i class="bi bi-x-circle me-2"></i>' +
+                'Error loading courses. Please check your connection.' +
+                '</div>'
+            );
+        }
+    });
+}
+
+function displayAvailableCourses(courses) {
+    const container = $('#available-courses-container');
+    
+    if (!courses || courses.length === 0) {
+        container.html(
+            '<div class="text-center py-4">' +
+            '<i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>' +
+            '<p class="text-muted mt-3">You\'re enrolled in all available courses!</p>' +
+            '<p class="text-muted small">Check back later for new courses.</p>' +
+            '</div>'
+        );
+        return;
+    }
+    
+    let html = '<div class="list-group list-group-flush">';
+    
+    courses.forEach(function(course) {
+        html += `
+            <div class="list-group-item border-0 px-0 py-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold">${course.title}</h6>
+                        <p class="text-muted small mb-2">${course.description || 'No description available'}</p>
+                        <div class="d-flex gap-3 small text-muted">
+                            <span><i class="bi bi-clock me-1"></i>${course.duration || 'Self-paced'}</span>
+                            <span><i class="bi bi-bar-chart me-1"></i>${course.difficulty || 'Beginner'}</span>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <button class="btn btn-primary btn-sm enroll-btn" data-course-id="${course.id}" onclick="enrollCourse(${course.id})">
+                            <i class="bi bi-plus-circle me-1"></i>Enroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.html(html);
+}
+
+function enrollCourse(courseId) {
+    const button = $(`.enroll-btn[data-course-id="${courseId}"]`);
+    
+    // Show loading state
+    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Enrolling...');
+    
+    $.ajax({
+        url: '<?= base_url('course/enroll') ?>',
+        method: 'POST',
+        data: {
+            course_id: courseId,
+            '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                // Show success message
+                showAlert('success', response.message);
+                
+                // Refresh both lists
+                loadEnrolledCourses();
+                loadAvailableCourses();
+            } else {
+                // Show error message
+                showAlert('danger', response.message);
+                
+                // Re-enable button
+                button.prop('disabled', false).html('<i class="bi bi-plus-circle me-1"></i>Enroll');
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'An error occurred while enrolling. Please try again.';
+            
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            showAlert('danger', errorMessage);
+            
+            // Re-enable button
+            button.prop('disabled', false).html('<i class="bi bi-plus-circle me-1"></i>Enroll');
+        }
+    });
+}
+
+function dropCourse(courseId) {
+    if (!confirm('Are you sure you want to drop this course?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '<?= base_url('course/drop') ?>',
+        method: 'POST',
+        data: {
+            course_id: courseId,
+            '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                showAlert('warning', response.message);
+                
+                // Refresh both lists
+                loadEnrolledCourses();
+                loadAvailableCourses();
+            } else {
+                showAlert('danger', response.message);
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'An error occurred while dropping the course. Please try again.';
+            
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            showAlert('danger', errorMessage);
+        }
+    });
+}
+
+function showAlert(type, message) {
+    // Remove any existing alerts
+    $('.alert-dismissible').alert('close');
+    
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'x-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Insert at the top of the main content
+    $('.container .row:first').before(alertHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(function() {
+        $('.alert-dismissible').alert('close');
+    }, 5000);
 }
 </script>
 

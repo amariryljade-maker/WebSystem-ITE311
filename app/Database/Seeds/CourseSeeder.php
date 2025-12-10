@@ -8,115 +8,92 @@ class CourseSeeder extends Seeder
 {
     public function run()
     {
-        $data = [
+        $courses = [
             [
-                'title' => 'Web Development Fundamentals',
-                'description' => 'Learn the basics of web development including HTML, CSS, and JavaScript. This comprehensive course covers everything you need to start building modern websites.',
-                'short_description' => 'Master HTML, CSS, and JavaScript basics',
-                'instructor_id' => 3, // John Smith
-                'category' => 'Web Development',
-                'level' => 'beginner',
-                'duration' => 120,
-                'price' => 0.00,
-                'thumbnail' => null,
-                'is_published' => true,
-                'is_featured' => true,
-                'rating' => 4.5,
-                'total_ratings' => 150,
+                'title' => 'Introduction to Web Development',
+                'description' => 'Learn the fundamentals of HTML, CSS, and JavaScript to build modern websites.',
+                'instructor_id' => 3, // John Smith (instructor)
+                'duration' => '8 weeks',
+                'difficulty' => 'Beginner',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ],
             [
-                'title' => 'Python Programming for Beginners',
-                'description' => 'Start your programming journey with Python. Learn variables, loops, functions, and object-oriented programming in this hands-on course.',
-                'short_description' => 'Learn Python from scratch',
-                'instructor_id' => 4, // Sarah Johnson
-                'category' => 'Programming',
-                'level' => 'beginner',
-                'duration' => 180,
-                'price' => 49.99,
-                'thumbnail' => null,
-                'is_published' => true,
-                'is_featured' => true,
-                'rating' => 4.8,
-                'total_ratings' => 220,
+                'title' => 'Advanced PHP Programming',
+                'description' => 'Master PHP with advanced concepts including OOP, design patterns, and framework development.',
+                'instructor_id' => 4, // Sarah Johnson (instructor)
+                'duration' => '12 weeks',
+                'difficulty' => 'Advanced',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ],
             [
-                'title' => 'Database Design and SQL',
-                'description' => 'Master database design principles and SQL queries. Learn how to create, manage, and optimize relational databases.',
-                'short_description' => 'Database fundamentals and SQL mastery',
-                'instructor_id' => 5, // Michael Brown
-                'category' => 'Database',
-                'level' => 'intermediate',
-                'duration' => 150,
-                'price' => 79.99,
-                'thumbnail' => null,
-                'is_published' => true,
-                'is_featured' => false,
-                'rating' => 4.6,
-                'total_ratings' => 180,
+                'title' => 'Database Design and Management',
+                'description' => 'Learn database design principles, SQL optimization, and modern database management systems.',
+                'instructor_id' => 5, // Michael Brown (instructor)
+                'duration' => '10 weeks',
+                'difficulty' => 'Intermediate',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ],
             [
-                'title' => 'React.js Advanced Patterns',
-                'description' => 'Take your React skills to the next level. Learn advanced patterns, hooks, context API, and performance optimization techniques.',
-                'short_description' => 'Advanced React development techniques',
-                'instructor_id' => 6, // Emily Davis
-                'category' => 'Web Development',
-                'level' => 'advanced',
-                'duration' => 200,
-                'price' => 99.99,
-                'thumbnail' => null,
-                'is_published' => true,
-                'is_featured' => true,
-                'rating' => 4.9,
-                'total_ratings' => 95,
+                'title' => 'Frontend Frameworks: React and Vue',
+                'description' => 'Build dynamic web applications using modern JavaScript frameworks.',
+                'instructor_id' => 6, // Emily Davis (instructor)
+                'duration' => '6 weeks',
+                'difficulty' => 'Intermediate',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ],
             [
-                'title' => 'Mobile App Development with Flutter',
-                'description' => 'Build beautiful native mobile apps for iOS and Android using Flutter and Dart. Learn widgets, state management, and API integration.',
-                'short_description' => 'Create cross-platform mobile apps',
-                'instructor_id' => 3, // John Smith
-                'category' => 'Mobile Development',
-                'level' => 'intermediate',
-                'duration' => 240,
-                'price' => 89.99,
-                'thumbnail' => null,
-                'is_published' => true,
-                'is_featured' => false,
-                'rating' => 4.7,
-                'total_ratings' => 120,
+                'title' => 'Mobile App Development',
+                'description' => 'Create native mobile applications for iOS and Android using modern development tools.',
+                'instructor_id' => 3, // John Smith (instructor)
+                'duration' => '14 weeks',
+                'difficulty' => 'Advanced',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ],
             [
-                'title' => 'Machine Learning with Python',
-                'description' => 'Dive into machine learning and AI. Learn algorithms, data preprocessing, model training, and deployment using popular Python libraries.',
-                'short_description' => 'AI and ML fundamentals',
-                'instructor_id' => 4, // Sarah Johnson
-                'category' => 'Data Science',
-                'level' => 'advanced',
-                'duration' => 280,
-                'price' => 129.99,
-                'thumbnail' => null,
-                'is_published' => true,
-                'is_featured' => true,
-                'rating' => 4.9,
-                'total_ratings' => 200,
+                'title' => 'Cybersecurity Fundamentals',
+                'description' => 'Understand the basics of cybersecurity, including network security, encryption, and ethical hacking.',
+                'instructor_id' => 4, // Sarah Johnson (instructor)
+                'duration' => '8 weeks',
+                'difficulty' => 'Beginner',
+                'status' => 'active',
                 'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ],
+            [
+                'title' => 'Cloud Computing with AWS',
+                'description' => 'Learn to deploy and manage applications on Amazon Web Services cloud platform.',
+                'instructor_id' => 5, // Michael Brown (instructor)
+                'duration' => '10 weeks',
+                'difficulty' => 'Intermediate',
+                'status' => 'active',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ],
+            [
+                'title' => 'Machine Learning Basics',
+                'description' => 'Introduction to machine learning concepts, algorithms, and practical applications.',
+                'instructor_id' => 6, // Emily Davis (instructor)
+                'duration' => '12 weeks',
+                'difficulty' => 'Advanced',
+                'status' => 'active',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]
         ];
 
-        // Insert the data
-        $this->db->table('courses')->insertBatch($data);
+        $this->db->table('courses')->insertBatch($courses);
         
-        echo "✅ Successfully seeded 6 sample courses!\n";
+        echo "Courses seeded successfully!\n";
+        echo "Created " . count($courses) . " sample courses for testing enrollment functionality.\n";
     }
 }
-

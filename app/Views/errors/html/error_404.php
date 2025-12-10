@@ -74,7 +74,7 @@
 
         <p>
             <?php if (ENVIRONMENT !== 'production') : ?>
-                <?= nl2br(esc($message)) ?>
+                <?= isset($message) ? nl2br(esc($message)) : 'The page you requested was not found.' ?>
             <?php else : ?>
                 <?= lang('Errors.sorryCannotFind') ?>
             <?php endif; ?>

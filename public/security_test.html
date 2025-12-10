@@ -219,23 +219,15 @@
                 
                 const data = await response.json();
                 
-                // Accept 401 (auth), 403 (CSRF), or any error status as secure
-                if (response.status === 401 || response.status === 403 || !response.ok) {
-                    const blockReason = response.status === 403 ? 'CSRF filter' : 
-                                       response.status === 401 ? 'authentication check' : 
-                                       'security layer';
+                if (response.status === 401 && data.success === false) {
                     addResult('auth-result', 
-                        `✅ SECURE: Unauthorized request blocked by ${blockReason}<br>` +
-                        `Status: ${response.status}<br>` +
-                        `This means your security is working! The attack was stopped before accessing your data.`, 'pass');
-                } else if (response.ok && data.success === true) {
-                    addResult('auth-result', 
-                        `❌ VULNERABLE: Request succeeded without authentication!<br>` +
-                        `Status: ${response.status}<br>` +
-                        `Response: ${JSON.stringify(data)}`, 'fail');
+                        `✅ SECURE: Request rejected with status ${response.status}<br>` +
+                        `Response: ${data.message}`, 'pass');
                 } else {
                     addResult('auth-result', 
-                        `✅ SECURE: Request blocked<br>Status: ${response.status}`, 'pass');
+                        `❌ VULNERABLE: Request was not properly rejected!<br>` +
+                        `Status: ${response.status}<br>` +
+                        `Response: ${JSON.stringify(data)}`, 'fail');
                 }
             } catch (error) {
                 addResult('auth-result', `⚠️ Error: ${error.message}`, 'fail');
@@ -261,19 +253,13 @@
                 
                 const data = await response.json();
                 
-                // Accept 400 (input validation) or 403 (CSRF protection) as secure
-                if ((response.status === 400 && data.message && data.message.includes('Invalid')) ||
-                    (response.status === 403)) {
+                if (response.status === 400 && data.message.includes('Invalid')) {
                     addResult('sql-result', 
-                        `✅ SECURE: SQL injection blocked by ${response.status === 403 ? 'CSRF filter' : 'input validation'}<br>` +
-                        `Status: ${response.status}`, 'pass');
-                } else if (response.status === 401 && data.message && data.message.includes('logged in')) {
-                    addResult('sql-result', 
-                        `✅ SECURE: Request blocked (authentication required)<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: SQL injection blocked<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('sql-result', 
                         `❌ VULNERABLE: SQL injection may be possible<br>` +
-                        `Status: ${response.status}<br>Response: ${JSON.stringify(data).substring(0, 200)}`, 'fail');
+                        `Status: ${response.status}<br>Response: ${JSON.stringify(data)}`, 'fail');
                 }
             } catch (error) {
                 addResult('sql-result', `⚠️ Error: ${error.message}`, 'info');
@@ -297,13 +283,12 @@
                 
                 const data = await response.json();
                 
-                // Accept 400 or 403 as secure
-                if (response.status === 400 || response.status === 403 || response.status === 401) {
+                if (response.status === 400) {
                     addResult('sql-result', 
-                        `✅ SECURE: SQL injection blocked<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: SQL injection blocked<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('sql-result', 
-                        `❌ VULNERABLE: SQL injection may be possible<br>Status: ${response.status}`, 'fail');
+                        `❌ VULNERABLE: SQL injection may be possible`, 'fail');
                 }
             } catch (error) {
                 addResult('sql-result', `⚠️ Error: ${error.message}`, 'info');
@@ -327,13 +312,12 @@
                 
                 const data = await response.json();
                 
-                // Accept 400, 403, or 401 as secure
-                if (response.status === 400 || response.status === 403 || response.status === 401) {
+                if (response.status === 400) {
                     addResult('sql-result', 
-                        `✅ SECURE: SQL injection blocked<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: SQL injection blocked<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('sql-result', 
-                        `❌ VULNERABLE: SQL injection may be possible<br>Status: ${response.status}`, 'fail');
+                        `❌ VULNERABLE: SQL injection may be possible`, 'fail');
                 }
             } catch (error) {
                 addResult('sql-result', `⚠️ Error: ${error.message}`, 'info');
@@ -434,14 +418,12 @@
                 
                 const data = await response.json();
                 
-                // Accept 400 (input validation), 403 (CSRF), or 401 (auth) as secure
-                if ((response.status === 400 && data.message && data.message.includes('Invalid')) ||
-                    response.status === 403 || response.status === 401) {
+                if (response.status === 400 && data.message.includes('Invalid')) {
                     addResult('validation-result', 
-                        `✅ SECURE: Invalid input rejected<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: Non-numeric input rejected<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('validation-result', 
-                        `❌ VULNERABLE: Invalid input not properly rejected<br>Status: ${response.status}`, 'fail');
+                        `❌ VULNERABLE: Invalid input not properly rejected`, 'fail');
                 }
             } catch (error) {
                 addResult('validation-result', `⚠️ Error: ${error.message}`, 'fail');
@@ -465,13 +447,12 @@
                 
                 const data = await response.json();
                 
-                // Accept 400, 403, or 401 as secure
-                if (response.status === 400 || response.status === 403 || response.status === 401) {
+                if (response.status === 400) {
                     addResult('validation-result', 
-                        `✅ SECURE: Empty input rejected<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: Empty input rejected<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('validation-result', 
-                        `❌ VULNERABLE: Empty input not rejected<br>Status: ${response.status}`, 'fail');
+                        `❌ VULNERABLE: Empty input not rejected`, 'fail');
                 }
             } catch (error) {
                 addResult('validation-result', `⚠️ Error: ${error.message}`, 'fail');
@@ -495,14 +476,12 @@
                 
                 const data = await response.json();
                 
-                // Accept 404, 400, 403, or 401 as secure
-                if (response.status === 404 || response.status === 400 || 
-                    response.status === 403 || response.status === 401) {
+                if (response.status === 404 || response.status === 400) {
                     addResult('validation-result', 
-                        `✅ SECURE: Negative ID rejected<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: Negative ID rejected<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('validation-result', 
-                        `❌ VULNERABLE: Negative ID not rejected<br>Status: ${response.status}`, 'fail');
+                        `❌ VULNERABLE: Negative ID not rejected`, 'fail');
                 }
             } catch (error) {
                 addResult('validation-result', `⚠️ Error: ${error.message}`, 'fail');
@@ -526,13 +505,12 @@
                 
                 const data = await response.json();
                 
-                // Accept 404, 403, or 401 as secure
-                if (response.status === 404 || response.status === 403 || response.status === 401) {
+                if (response.status === 404 && data.message.includes('not found')) {
                     addResult('validation-result', 
-                        `✅ SECURE: Non-existent course rejected<br>Status: ${response.status}`, 'pass');
+                        `✅ SECURE: Non-existent course rejected<br>Response: ${data.message}`, 'pass');
                 } else {
                     addResult('validation-result', 
-                        `❌ VULNERABLE: Non-existent course not validated<br>Status: ${response.status}`, 'fail');
+                        `❌ VULNERABLE: Non-existent course not validated`, 'fail');
                 }
             } catch (error) {
                 addResult('validation-result', `⚠️ Error: ${error.message}`, 'fail');

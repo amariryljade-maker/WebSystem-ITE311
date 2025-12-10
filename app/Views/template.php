@@ -604,6 +604,9 @@
                                     <li><a class="dropdown-item" href="<?= base_url('admin/courses') ?>">
                                         <i class="bi bi-book me-2"></i>Manage Courses
                                     </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('admin/enrollments') ?>">
+                                        <i class="bi bi-person-check me-2"></i>Manage Enrollments
+                                    </a></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/reports') ?>">
                                         <i class="bi bi-graph-up me-2"></i>Reports
                                     </a></li>
@@ -785,6 +788,12 @@
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/users') ?>">
                                         <i class="bi bi-people me-2"></i>Manage Users
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('admin/courses') ?>">
+                                        <i class="bi bi-book me-2"></i>Manage Courses
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="<?= base_url('admin/enrollments') ?>">
+                                        <i class="bi bi-person-check me-2"></i>Manage Enrollments
                                     </a></li>
                                     <li><a class="dropdown-item" href="<?= base_url('admin/reports') ?>">
                                         <i class="bi bi-graph-up me-2"></i>View Reports

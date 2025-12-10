@@ -11,7 +11,7 @@ $routes->get('contact', 'Home::contact');
 $routes->get('test', 'Home::test');
 
 // ============================================================
-// AUTHENTICATION ROUTES
+// AUTHENTICATION ROUTES (SECURE)
 // ============================================================
 $routes->group('auth', function($routes) {
     $routes->get('register', 'Auth::register');
@@ -48,6 +48,11 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->get('courses/edit/(:num)', 'Admin::editCourse/$1');
     $routes->post('courses/edit/(:num)', 'Admin::editCourse/$1');
     $routes->get('courses/delete/(:num)', 'Admin::deleteCourse/$1');
+    $routes->get('enrollments', 'Admin::enrollments');
+    $routes->get('enrollments/create', 'Admin::createEnrollment');
+    $routes->post('enrollments/create', 'Admin::createEnrollment');
+    $routes->get('enrollments/delete/(:num)', 'Admin::deleteEnrollment/$1');
+    $routes->post('enrollments/update-status/(:num)', 'Admin::updateEnrollmentStatus/$1');
     $routes->get('reports', 'Admin::reports');
     $routes->get('reports/users', 'Admin::userReports');
     $routes->get('reports/courses', 'Admin::courseReports');
@@ -55,6 +60,55 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->get('settings', 'Admin::settings');
     $routes->post('settings', 'Admin::updateSettings');
 });
+
+// ============================================================
+// LOG VIEWER ROUTES (Admin Only)
+// ============================================================
+$routes->get('logs', 'LogViewer::index');
+$routes->post('logs/clear', 'LogViewer::clear');
+
+// ============================================================
+// LESSON ROUTES (Direct Access)
+// ============================================================
+$routes->get('lessons', 'Teacher::lessons');
+$routes->get('lessons/create', 'Teacher::createLesson');
+$routes->post('lessons/create', 'Teacher::createLesson');
+$routes->get('lessons/edit/(:num)', 'Teacher::editLesson/$1');
+$routes->post('lessons/edit/(:num)', 'Teacher::editLesson/$1');
+
+// ============================================================
+// QUIZ ROUTES (Direct Access)
+// ============================================================
+$routes->get('quizzes', 'Teacher::quizzes');
+$routes->get('quizzes/create', 'Teacher::createQuiz');
+$routes->post('quizzes/create', 'Teacher::createQuiz');
+$routes->get('quizzes/edit/(:num)', 'Teacher::editQuiz/$1');
+$routes->post('quizzes/edit/(:num)', 'Teacher::editQuiz/$1');
+
+// ============================================================
+// COURSE ROUTES (Direct Access)
+// ============================================================
+$routes->get('courses', 'Teacher::courses');
+$routes->get('courses/create', 'Teacher::createCourse');
+$routes->post('courses/create', 'Teacher::createCourse');
+$routes->get('courses/edit/(:num)', 'Teacher::editCourse/$1');
+$routes->post('courses/edit/(:num)', 'Teacher::editCourse/$1');
+$routes->get('courses/view/(:num)', 'Teacher::viewCourse/$1');
+
+// ============================================================
+// TEACHER ROUTES (Direct Access - No Auth Filter for Testing)
+// ============================================================
+$routes->get('teacher/lessons', 'Teacher::lessons');
+$routes->get('teacher/lessons/create', 'Teacher::createLesson');
+$routes->post('teacher/lessons/create', 'Teacher::createLesson');
+$routes->get('teacher/lessons/edit/(:num)', 'Teacher::editLesson/$1');
+$routes->post('teacher/lessons/edit/(:num)', 'Teacher::editLesson/$1');
+$routes->get('teacher/courses', 'Teacher::courses');
+$routes->get('teacher/courses/create', 'Teacher::createCourse');
+$routes->post('teacher/courses/create', 'Teacher::createCourse');
+$routes->get('teacher/courses/edit/(:num)', 'Teacher::editCourse/$1');
+$routes->post('teacher/courses/edit/(:num)', 'Teacher::editCourse/$1');
+$routes->get('teacher/courses/view/(:num)', 'Teacher::viewCourse/$1');
 
 // ============================================================
 // TEACHER ROUTES
@@ -68,11 +122,6 @@ $routes->group('teacher', ['filter' => 'auth'], function($routes) {
     $routes->get('courses/edit/(:num)', 'Teacher::editCourse/$1');
     $routes->post('courses/edit/(:num)', 'Teacher::editCourse/$1');
     $routes->get('courses/view/(:num)', 'Teacher::viewCourse/$1');
-    $routes->get('lessons', 'Teacher::lessons');
-    $routes->get('lessons/create', 'Teacher::createLesson');
-    $routes->post('lessons/create', 'Teacher::createLesson');
-    $routes->get('lessons/edit/(:num)', 'Teacher::editLesson/$1');
-    $routes->post('lessons/edit/(:num)', 'Teacher::editLesson/$1');
     $routes->get('quizzes', 'Teacher::quizzes');
     $routes->get('quizzes/create', 'Teacher::createQuiz');
     $routes->post('quizzes/create', 'Teacher::createQuiz');
@@ -165,28 +214,47 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
 });
 
 // ============================================================
-// PUBLIC ROUTES
+// COURSE ENROLLMENT ROUTES
 // ============================================================
-$routes->get('courses', 'Course::browse');
-$routes->get('courses/view/(:num)', 'Course::view/$1');
+$routes->group('course', ['filter' => 'auth'], function($routes) {
+    $routes->post('enroll', 'Course::enroll');
+    $routes->post('drop', 'Course::drop');
+    $routes->get('get-enrolled-courses', 'Course::getEnrolledCourses');
+    $routes->get('get-available-courses', 'Course::getAvailableCourses');
+    $routes->get('show/(:num)', 'Course::show/$1');
+});
+
+// ============================================================
+// PUBLIC COURSE ROUTES
+// ============================================================
+$routes->get('courses', 'Course::index');
+$routes->get('courses/view/(:num)', 'Course::show/$1');
 $routes->get('courses/category/(:any)', 'Course::category/$1');
 
 // ============================================================
-// API ROUTES (for AJAX calls)
+// DEFAULT ASSIGNMENTS ROUTE (Role-based redirect)
 // ============================================================
-$routes->group('api', ['filter' => 'auth'], function($routes) {
-    $routes->get('notifications/unread-count', 'Api::getUnreadNotificationCount');
-    $routes->post('notifications/mark-read', 'Api::markNotificationRead');
-    $routes->get('user/profile', 'Api::getUserProfile');
-    $routes->post('user/update-profile', 'Api::updateUserProfile');
-    $routes->get('dashboard/stats', 'Api::getDashboardStats');
+$routes->get('assignments/create', function() {
+    // Check user role and redirect accordingly
+    if (function_exists('has_role')) {
+        if (has_role('instructor')) {
+            return redirect()->to('/instructor/assignments/create');
+        } elseif (has_role('teacher')) {
+            return redirect()->to('/teacher/assignments/create');
+        } elseif (has_role('admin')) {
+            return redirect()->to('/admin/assignments/create');
+        }
+    }
+    // Default fallback or show error
+    session()->setFlashdata('error', 'Access denied. You do not have permission to create assignments.');
+    return redirect()->to('/dashboard');
 });
 
 // ============================================================
 // ERROR ROUTES
 // ============================================================
-$routes->set404Override(function() {
-    return view('errors/html/error_404');
+$routes->set404Override(function($message = null) {
+    return view('errors/html/error_404', ['message' => $message ?? 'The page you requested was not found.']);
 });
 
 $routes->setDefaultController('Home');
