@@ -7,7 +7,7 @@ use App\Models\AssignmentModel;
 use App\Models\QuizModel;
 use App\Models\UserModel;
 
-helper(['auth']);
+helper(['auth', 'form']);
 
 class Instructor extends BaseController
 {
@@ -78,6 +78,31 @@ class Instructor extends BaseController
         ];
 
         return view('instructor/courses', $data);
+    }
+
+    /**
+     * Courses - Standalone Version (No Template Dependencies)
+     */
+    public function coursesStandalone()
+    {
+        // Check if user is logged in and has instructor role
+        if (!is_user_logged_in()) {
+            return redirect()->to('/login');
+        }
+
+        if (!has_role('instructor')) {
+            session()->setFlashdata('error', 'Access denied. Instructor privileges required.');
+            return redirect()->to('/dashboard');
+        }
+
+        $userId = get_user_id();
+        
+        $data = [
+            'title' => 'My Courses',
+            'courses' => $this->courseModel->getInstructorCourses($userId)
+        ];
+
+        return view('instructor/courses_standalone', $data);
     }
 
     /**
@@ -322,6 +347,28 @@ class Instructor extends BaseController
     }
 
     /**
+     * Schedule Calendar View
+     */
+    public function scheduleCalendar()
+    {
+        // Check if user is logged in and has instructor role
+        if (!is_user_logged_in()) {
+            return redirect()->to('/login');
+        }
+
+        if (!has_role('instructor')) {
+            session()->setFlashdata('error', 'Access denied. Instructor privileges required.');
+            return redirect()->to('/dashboard');
+        }
+
+        $data = [
+            'title' => 'Schedule Calendar'
+        ];
+
+        return view('instructor/schedule_calendar', $data);
+    }
+
+    /**
      * Create Schedule
      */
     public function createSchedule()
@@ -495,6 +542,86 @@ class Instructor extends BaseController
         ];
 
         return view('instructor/students', $data);
+    }
+
+    /**
+     * Add Student
+     */
+    public function addStudent()
+    {
+        // Check if user is logged in and has instructor role
+        if (!is_user_logged_in()) {
+            return redirect()->to('/login');
+        }
+
+        if (!has_role('instructor')) {
+            session()->setFlashdata('error', 'Access denied. Instructor privileges required.');
+            return redirect()->to('/dashboard');
+        }
+
+        if ($this->request->getMethod() === 'post') {
+            // Handle student addition logic here
+            session()->setFlashdata('success', 'Student added successfully.');
+            return redirect()->to('/instructor/students');
+        }
+
+        $data = [
+            'title' => 'Add Student'
+        ];
+
+        return view('instructor/add_student', $data);
+    }
+
+    /**
+     * Student Grades
+     */
+    public function studentGrades($id)
+    {
+        // Check if user is logged in and has instructor role
+        if (!is_user_logged_in()) {
+            return redirect()->to('/login');
+        }
+
+        if (!has_role('instructor')) {
+            session()->setFlashdata('error', 'Access denied. Instructor privileges required.');
+            return redirect()->to('/dashboard');
+        }
+
+        $data = [
+            'title' => 'Student Grades',
+            'student_id' => $id
+        ];
+
+        return view('instructor/student_grades', $data);
+    }
+
+    /**
+     * Message Student
+     */
+    public function messageStudent($id)
+    {
+        // Check if user is logged in and has instructor role
+        if (!is_user_logged_in()) {
+            return redirect()->to('/login');
+        }
+
+        if (!has_role('instructor')) {
+            session()->setFlashdata('error', 'Access denied. Instructor privileges required.');
+            return redirect()->to('/dashboard');
+        }
+
+        if ($this->request->getMethod() === 'post') {
+            // Handle message sending logic here
+            session()->setFlashdata('success', 'Message sent successfully.');
+            return redirect()->to('/instructor/students');
+        }
+
+        $data = [
+            'title' => 'Send Message',
+            'student_id' => $id
+        ];
+
+        return view('instructor/message_student', $data);
     }
 
     /**

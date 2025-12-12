@@ -58,6 +58,45 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="duration" class="form-label">Course Time</label>
+                                    <input type="text" class="form-control" id="duration" name="duration" placeholder="e.g., 10:00 AM">
+                                    <div class="form-text">Enter course time</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="start_date" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="end_date" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="schedule" class="form-label">Schedule</label>
+                                    <input type="text" class="form-control" id="schedule" name="schedule" placeholder="e.g., Mon-Wed-Fri 10:00 AM">
+                                    <div class="form-text">Class meeting days and times</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="max_students" class="form-label">Maximum Students</label>
+                                    <input type="number" class="form-control" id="max_students" name="max_students" placeholder="e.g., 30" min="1" max="500">
+                                    <div class="form-text">Optional: Set a limit on enrollment</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-end">

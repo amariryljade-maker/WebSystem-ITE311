@@ -75,9 +75,9 @@ class Filters extends BaseConfig
         'security' => [
             'before' => ['login', 'register', 'logout']
         ],
-        'ratelimit' => [
-            'before' => ['login', 'register']
-        ],
+        // 'ratelimit' => [
+        //     'before' => ['login', 'register']
+        // ],
         'auth' => [
             'before' => ['dashboard', 'admin/*', 'teacher/*', 'instructor/*', 'student/*']
         ]

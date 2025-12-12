@@ -695,6 +695,9 @@
     </div>
 </div>
 
+<?php $this->endSection(); ?>
+
+<?php $this->section('scripts'); ?>
 <script>
 // Session timer functionality
 let sessionStartTime = Date.now();
@@ -979,7 +982,7 @@ function dropCourse(courseId) {
 
 function showAlert(type, message) {
     // Remove any existing alerts
-    $('.alert-dismissible').alert('close');
+    $('.alert-dismissible').remove();
     
     const alertHtml = `
         <div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -994,7 +997,9 @@ function showAlert(type, message) {
     
     // Auto-dismiss after 5 seconds
     setTimeout(function() {
-        $('.alert-dismissible').alert('close');
+        $('.alert-dismissible').fadeOut(500, function() {
+            $(this).remove();
+        });
     }, 5000);
 }
 </script>

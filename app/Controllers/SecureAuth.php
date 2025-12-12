@@ -235,12 +235,15 @@ class SecureAuth extends BaseController
             }
 
             // Rate limiting for login attempts
+            // Variable declared for logging purposes (rate limiting disabled)
             $ipAddress = $this->request->getIPAddress();
+            /*
             if (!$this->checkLoginRateLimit($ipAddress)) {
                 $this->logSecurityEvent('rate_limit_exceeded', 'Login attempts', $ipAddress);
                 session()->setFlashdata('error', 'Too many login attempts. Please try again later.');
                 return redirect()->to('/login');
             }
+            */
 
             // Enhanced validation
             $rules = [

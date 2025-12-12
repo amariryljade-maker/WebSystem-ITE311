@@ -21,8 +21,10 @@
                     <div class="card text-center">
                         <div class="card-body">
                             <div class="mb-3">
-                                <img src="https://via.placeholder.com/150x150/4e73df/ffffff?text=<?= substr($user['name'], 0, 2) ?>" 
-                                     class="rounded-circle" alt="Profile Avatar" width="150" height="150">
+                                <div class="mx-auto rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                     style="width: 150px; height: 150px; font-size: 48px; font-weight: bold;">
+                                    <?= strtoupper(substr($user['name'], 0, 2)) ?>
+                                </div>
                             </div>
                             <h5 class="card-title"><?= esc($user['name']) ?></h5>
                             <p class="card-text text-muted"><?= esc($user['email']) ?></p>

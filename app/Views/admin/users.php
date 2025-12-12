@@ -146,10 +146,16 @@
                                             <td><?= date('M d, Y', strtotime($user['created_at'])) ?></td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <a href="<?= site_url('/admin/users/edit/' . $user['id']) ?>" class="btn btn-sm btn-outline-primary">
+                                                    <a href="<?= site_url('/admin/users/view/' . $user['id']) ?>" class="btn btn-sm btn-outline-info" title="View User Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="<?= site_url('/admin/users/edit/' . $user['id']) ?>" class="btn btn-sm btn-outline-primary" title="Edit User">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="<?= site_url('/admin/users/delete/' . $user['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this user?')">
+                                                    <a href="<?= site_url('/admin/users/reset-password/' . $user['id']) ?>" class="btn btn-sm btn-outline-warning" title="Reset Password" onclick="return confirm('Are you sure you want to reset this user\'s password?')">
+                                                        <i class="fas fa-key"></i>
+                                                    </a>
+                                                    <a href="<?= site_url('/admin/users/delete/' . $user['id']) ?>" class="btn btn-sm btn-outline-danger" title="Delete User" onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>

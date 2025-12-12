@@ -7,6 +7,7 @@ use App\Models\AssignmentModel;
 use App\Models\QuizModel;
 use App\Models\UserModel;
 use App\Models\EnrollmentModel;
+use App\Models\MaterialModel;
 
 helper(['auth']);
 
@@ -17,6 +18,7 @@ class Student extends BaseController
     protected $quizModel;
     protected $userModel;
     protected $enrollmentModel;
+    protected $materialModel;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class Student extends BaseController
         $this->quizModel = new QuizModel();
         $this->userModel = new UserModel();
         $this->enrollmentModel = new EnrollmentModel();
+        $this->materialModel = new MaterialModel();
     }
 
     /**
@@ -289,6 +292,53 @@ class Student extends BaseController
         ];
 
         return view('student/submit_assignment', $data);
+    }
+
+    /**
+     * Course Materials
+     */
+    public function courseMaterials($course_id)
+    {
+        // Check if user is logged in and has student role
+        if (!is_user_logged_in()) {
+            return redirect()->to('/login');
+        }
+
+        if (!has_role('student')) {
+            session()->setFlashdata('error', 'Access denied. Student privileges required.');
+            return redirect()->to('/dashboard');
+        }
+
+        // Verify course exists and student is enrolled
+        $course = $this->courseModel->find($course_id);
+        if (!$course) {
+            session()->setFlashdata('error', 'Course not found.');
+            return redirect()->to('/student/courses');
+        }
+
+        // Check if student is enrolled in this course
+        $userId = get_user_id();
+        $isEnrolled = $this->enrollmentModel->where([
+            'user_id' => $userId,
+            'course_id' => $course_id,
+            'status' => 'active'
+        ])->first();
+
+        if (!$isEnrolled) {
+            session()->setFlashdata('error', 'You are not enrolled in this course.');
+            return redirect()->to('/student/courses');
+        }
+
+        // Get materials for this course
+        $materials = $this->materialModel->getMaterialsByCourse($course_id);
+
+        $data = [
+            'title' => 'Course Materials - ' . $course['title'],
+            'course' => $course,
+            'materials' => $materials
+        ];
+
+        return view('student/course_materials', $data);
     }
 
     /**

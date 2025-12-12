@@ -4,7 +4,8 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-cente
+            r mb-4">
                 <h1 class="h3 mb-0 text-gray-800">Contact Us</h1>
                 <a href="<?= base_url('help') ?>" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Back to Help

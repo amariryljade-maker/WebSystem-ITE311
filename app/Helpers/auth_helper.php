@@ -5,8 +5,13 @@ if (!function_exists('is_user_logged_in')) {
      * Check if user is logged in
      */
     function is_user_logged_in() {
-        $session = session();
-        return $session->get('logged_in') === true && $session->get('user_id');
+        if (function_exists('session') && is_callable('session')) {
+            $session = session();
+            return $session->get('logged_in') === true && $session->get('user_id');
+        } else {
+            // Fallback to $_SESSION for testing
+            return isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true && isset($_SESSION['user_id']);
+        }
     }
 }
 
@@ -15,7 +20,11 @@ if (!function_exists('get_user_id')) {
      * Get current user ID
      */
     function get_user_id() {
-        return session()->get('user_id');
+        if (function_exists('session') && is_callable('session')) {
+            return session()->get('user_id');
+        } else {
+            return $_SESSION['user_id'] ?? null;
+        }
     }
 }
 
@@ -24,7 +33,11 @@ if (!function_exists('get_user_role')) {
      * Get current user role
      */
     function get_user_role() {
-        return session()->get('user_role');
+        if (function_exists('session') && is_callable('session')) {
+            return session()->get('user_role');
+        } else {
+            return $_SESSION['user_role'] ?? null;
+        }
     }
 }
 

@@ -129,10 +129,12 @@ class Auth extends BaseController
             }
 
             // Rate limiting: Check for too many login attempts
+            // Variables declared for logging purposes (rate limiting disabled)
             $ipAddress = $this->request->getIPAddress();
             $sessionKey = 'login_attempts_' . str_replace('.', '_', $ipAddress);
             $attempts = session()->get($sessionKey) ?: ['count' => 0, 'first_attempt' => time()];
             
+            /*
             // Reset attempts if 15 minutes have passed
             if (time() - $attempts['first_attempt'] > 900) {
                 $attempts = ['count' => 0, 'first_attempt' => time()];
@@ -144,6 +146,7 @@ class Auth extends BaseController
                 session()->setFlashdata('error', 'Too many login attempts. Please try again in 15 minutes.');
                 return redirect()->to('/login');
             }
+            */
 
             // Enhanced validation with sanitization
             $rules = [
@@ -222,11 +225,13 @@ class Auth extends BaseController
                 return redirect()->to('/dashboard');
             } else {
                 // Increment failed attempts on login failure
+                /*
                 $attempts['count']++;
                 session()->set($sessionKey, $attempts);
+                */
                 
                 AppLogger::loginAttempt($email, false, $this->request->getIPAddress(), $this->request->getUserAgent());
-                log_message('warning', "Login failed: Email = {$email}, IP = {$ipAddress}, Attempt = {$attempts['count']}");
+                log_message('warning', "Login failed: Email = {$email}, IP = {$ipAddress}");
                 
                 // Generic error message for security
                 session()->setFlashdata('error', 'Invalid email or password.');

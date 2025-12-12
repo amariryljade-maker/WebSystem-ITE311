@@ -139,11 +139,14 @@
                                             <td><?= date('M d, Y', strtotime($course['created_at'])) ?></td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <a href="<?= site_url('/admin/courses/edit/' . $course['id']) ?>" class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-edit"></i>
+                                                    <a href="<?= site_url('/admin/courses/view/' . $course['id']) ?>" class="btn btn-sm btn-outline-info" title="View Course">
+                                                        <i class="fas fa-eye"></i> View
                                                     </a>
-                                                    <a href="<?= site_url('/admin/courses/delete/' . $course['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this course?')">
-                                                        <i class="fas fa-trash"></i>
+                                                    <a href="<?= site_url('/admin/courses/edit/' . $course['id']) ?>" class="btn btn-sm btn-outline-primary" title="Edit Course">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                    <a href="<?= site_url('/admin/courses/delete/' . $course['id']) ?>" class="btn btn-sm btn-outline-danger" title="Delete Course" onclick="return confirm('Are you sure you want to delete this course? This action cannot be undone.')">
+                                                        <i class="fas fa-trash"></i> Delete
                                                     </a>
                                                 </div>
                                             </td>

@@ -31,8 +31,8 @@ class Teacher extends BaseController
             return redirect()->to('/login');
         }
 
-        if (!has_role('teacher')) {
-            session()->setFlashdata('error', 'Access denied. Teacher privileges required.');
+        if (!has_role('teacher') && !has_role('instructor')) {
+            session()->setFlashdata('error', 'Access denied. Teacher or Instructor privileges required.');
             return redirect()->to('/dashboard');
         }
 
@@ -55,7 +55,7 @@ class Teacher extends BaseController
      */
     public function courses()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -83,7 +83,7 @@ class Teacher extends BaseController
      */
     public function createCourse()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -125,6 +125,84 @@ class Teacher extends BaseController
     }
 
     /**
+     * View Course
+     */
+    public function viewCourse($courseId)
+    {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
+            return redirect()->to('/login');
+        }
+
+        $userId = get_user_id();
+        $course = $this->courseModel->getTeacherCourse($courseId, $userId);
+        
+        if (!$course) {
+            session()->setFlashdata('error', 'Course not found.');
+            return redirect()->to('/teacher/courses');
+        }
+
+        $data = [
+            'title' => 'Course Details',
+            'course' => $course
+        ];
+
+        return view('teacher/view_course', $data);
+    }
+
+    /**
+     * Edit Course
+     */
+    public function editCourse($courseId)
+    {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
+            return redirect()->to('/login');
+        }
+
+        $userId = get_user_id();
+        $course = $this->courseModel->getTeacherCourse($courseId, $userId);
+        
+        if (!$course) {
+            session()->setFlashdata('error', 'Course not found.');
+            return redirect()->to('/teacher/courses');
+        }
+
+        if ($this->request->getMethod() === 'post') {
+            $validation = \Config\Services::validation();
+            
+            $rules = [
+                'title' => 'required|min_length[3]|max_length[255]',
+                'description' => 'required|min_length[10]',
+                'category' => 'required'
+            ];
+
+            if ($this->validate($rules)) {
+                $courseData = [
+                    'title' => $this->request->getPost('title'),
+                    'description' => $this->request->getPost('description'),
+                    'category' => $this->request->getPost('category'),
+                    'is_published' => $this->request->getPost('is_published') ?? $course['is_published'],
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+
+                if ($this->courseModel->update($courseId, $courseData)) {
+                    session()->setFlashdata('success', 'Course updated successfully!');
+                    return redirect()->to('/teacher/courses');
+                } else {
+                    session()->setFlashdata('error', 'Failed to update course.');
+                }
+            }
+        }
+
+        $data = [
+            'title' => 'Edit Course',
+            'course' => $course,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('teacher/edit_course', $data);
+    }
+
+    /**
      * Display all lessons
      */
     public function lessons()
@@ -135,7 +213,7 @@ class Teacher extends BaseController
             return redirect()->to('/login');
         }
 
-        if (!has_role('teacher')) {
+        if (!has_role('teacher') && !has_role('instructor')) {
             session()->setFlashdata('error', 'Access denied. Teacher privileges required.');
             return redirect()->to('/dashboard');
         }
@@ -159,7 +237,7 @@ class Teacher extends BaseController
      */
     public function createLesson()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -211,7 +289,7 @@ class Teacher extends BaseController
      */
     public function editLesson($lessonId)
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -267,7 +345,7 @@ class Teacher extends BaseController
      */
     public function quizzes()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -284,7 +362,7 @@ class Teacher extends BaseController
      */
     public function createQuiz()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -301,7 +379,7 @@ class Teacher extends BaseController
      */
     public function editQuiz($quizId)
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -319,7 +397,7 @@ class Teacher extends BaseController
      */
     public function assignments()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -336,7 +414,7 @@ class Teacher extends BaseController
      */
     public function createAssignment()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -353,7 +431,7 @@ class Teacher extends BaseController
      */
     public function editAssignment($assignmentId)
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -371,7 +449,7 @@ class Teacher extends BaseController
      */
     public function gradeAssignment($assignmentId)
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 
@@ -389,7 +467,7 @@ class Teacher extends BaseController
      */
     public function students()
     {
-        if (!is_user_logged_in() || !has_role('teacher')) {
+        if (!is_user_logged_in() || !has_role('teacher') && !has_role('instructor')) {
             return redirect()->to('/login');
         }
 

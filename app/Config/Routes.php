@@ -158,6 +158,7 @@ $routes->group('instructor', ['filter' => 'auth'], function($routes) {
     $routes->post('resources/edit/(:num)', 'Instructor::editResource/$1');
     $routes->get('resources/delete/(:num)', 'Instructor::deleteResource/$1');
     $routes->get('schedule', 'Instructor::schedule');
+    $routes->get('schedule/calendar', 'Instructor::scheduleCalendar');
     $routes->get('schedule/create', 'Instructor::createSchedule');
     $routes->post('schedule/create', 'Instructor::createSchedule');
     $routes->get('schedule/edit/(:num)', 'Instructor::editSchedule/$1');
@@ -168,7 +169,11 @@ $routes->group('instructor', ['filter' => 'auth'], function($routes) {
     $routes->get('assignments/edit/(:num)', 'Instructor::editAssignment/$1');
     $routes->post('assignments/edit/(:num)', 'Instructor::editAssignment/$1');
     $routes->get('students', 'Instructor::students');
+    $routes->get('students/add', 'Instructor::addStudent');
+    $routes->post('students/add', 'Instructor::addStudent');
     $routes->get('students/view/(:num)', 'Instructor::viewStudent/$1');
+    $routes->get('students/grades/(:num)', 'Instructor::studentGrades/$1');
+    $routes->get('students/message/(:num)', 'Instructor::messageStudent/$1');
 });
 
 // ============================================================
@@ -221,6 +226,7 @@ $routes->group('course', ['filter' => 'auth'], function($routes) {
     $routes->post('drop', 'Course::drop');
     $routes->get('get-enrolled-courses', 'Course::getEnrolledCourses');
     $routes->get('get-available-courses', 'Course::getAvailableCourses');
+    $routes->get('test', 'Course::test');
     $routes->get('show/(:num)', 'Course::show/$1');
 });
 
@@ -248,6 +254,29 @@ $routes->get('assignments/create', function() {
     // Default fallback or show error
     session()->setFlashdata('error', 'Access denied. You do not have permission to create assignments.');
     return redirect()->to('/dashboard');
+});
+
+// Direct Access - No Auth Filter for Testing
+$routes->get('instructor/courses/test', 'Instructor::courses');
+$routes->get('instructor/courses/standalone', 'Instructor::coursesStandalone');
+
+// ============================================================
+// MATERIALS ROUTES
+// ============================================================
+$routes->get('/admin/course/(:num)/upload', 'Materials::upload/$1');
+$routes->post('/admin/course/(:num)/upload', 'Materials::upload/$1');
+$routes->get('/materials/delete/(:num)', 'Materials::delete/$1');
+$routes->get('/materials/download/(:num)', 'Materials::download/$1');
+
+// Additional materials routes for instructors
+$routes->group('instructor', ['filter' => 'auth'], function($routes) {
+    $routes->get('courses/(:num)/upload', 'Materials::upload/$1');
+    $routes->post('courses/(:num)/upload', 'Materials::upload/$1');
+});
+
+// Student materials access
+$routes->group('student', ['filter' => 'auth'], function($routes) {
+    $routes->get('courses/(:num)/materials', 'Student::courseMaterials/$1');
 });
 
 // ============================================================

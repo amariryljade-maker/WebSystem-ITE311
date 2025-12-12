@@ -59,11 +59,11 @@ class SecurityFilter implements FilterInterface
         // Content Security Policy
         $response->setHeader('Content-Security-Policy', 
             "default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " .
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net; " .
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.datatables.net; " .
             "img-src 'self' data: https:; " .
-            "font-src 'self' https://cdn.jsdelivr.net; " .
-            "connect-src 'self'; " .
+            "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; " .
+            "connect-src 'self' https://cdn.jsdelivr.net; " .
             "frame-ancestors 'none';"
         );
         
@@ -72,7 +72,7 @@ class SecurityFilter implements FilterInterface
         
         // Permissions Policy
         $response->setHeader('Permissions-Policy', 
-            'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=()'
+            'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()'
         );
     }
 

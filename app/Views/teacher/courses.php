@@ -6,7 +6,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3 mb-0 text-gray-800">My Courses</h1>
-                <a href="<?= base_url('courses/create') ?>" class="btn btn-primary">
+                <a href="<?= base_url('teacher/courses/create') ?>" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i>Create New Course
                 </a>
             </div>
@@ -20,7 +20,7 @@
                         <div class="p-4 text-center text-muted">
                             <i class="fas fa-graduation-cap fa-3x mb-3"></i>
                             <p>No courses found. Create your first course!</p>
-                            <a href="<?= base_url('courses/create') ?>" class="btn btn-primary">
+                            <a href="<?= base_url('teacher/courses/create') ?>" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>Create Course
                             </a>
                         </div>
@@ -85,11 +85,11 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
-                                                    <a href="<?= base_url('courses/view/' . $course['id']) ?>" 
+                                                    <a href="<?= base_url('teacher/courses/view/' . $course['id']) ?>" 
                                                        class="btn btn-outline-info" title="View">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a href="<?= base_url('courses/edit/' . $course['id']) ?>" 
+                                                    <a href="<?= base_url('teacher/courses/edit/' . $course['id']) ?>" 
                                                        class="btn btn-outline-primary" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>

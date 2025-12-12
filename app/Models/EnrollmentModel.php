@@ -103,7 +103,7 @@ class EnrollmentModel extends Model
      */
     public function getUserEnrollments($user_id)
     {
-        return $this->select('enrollments.*, courses.title, courses.description, courses.instructor_id, courses.duration, courses.difficulty')
+        return $this->select('enrollments.*, courses.title, courses.description, courses.instructor_id, courses.duration, courses.level')
                     ->join('courses', 'courses.id = enrollments.course_id')
                     ->where('enrollments.user_id', $user_id)
                     ->where('enrollments.status', 'active')
