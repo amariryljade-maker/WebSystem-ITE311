@@ -1,58 +1,159 @@
-<?php $this->extend('template'); ?>
+<?= $this->extend('template') ?>
 
-<?php $this->section('content'); ?>
-
-<!-- Resources Header -->
-<div class="bg-primary text-white py-4">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="h3 mb-2">Course Resources</h1>
-                <p class="mb-0 opacity-75">
-                    <i class="bi bi-folder-fill me-2"></i>
-                    Manage and organize your course materials
-                </p>
-            </div>
-            <div class="col-lg-4 text-end">
-                <div class="d-flex gap-2 justify-content-end">
-                    <a href="<?= base_url('instructor/resources/upload') ?>" class="btn btn-light">
-                        <i class="bi bi-upload me-2"></i>Upload Resource
+<?= $this->section('content') ?>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-5">
+                <div>
+                    <h1 class="h2 page-title mb-2">
+                        <i class="bi bi-folder-fill me-3"></i>Course Resources
+                    </h1>
+                    <p class="text-muted mb-0">Manage and organize your course materials</p>
+                </div>
+                <div>
+                    <a href="<?= site_url('instructor/resources/upload') ?>" class="btn btn-modern btn-primary btn-lg">
+                        <i class="bi bi-cloud-upload me-2"></i>Upload Resource
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Resources Content -->
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold text-primary">My Resources</h6>
-                </div>
-                <div class="card-body p-0">
-                    <?php if (empty($resources ?? [])): ?>
-                        <div class="p-4 text-center text-muted">
-                            <i class="bi bi-folder-x fs-1 mb-3"></i>
-                            <h5>No Resources Found</h5>
-                            <p class="mb-3">You haven't uploaded any resources yet. Start by uploading your first resource.</p>
-                            <a href="<?= base_url('instructor/resources/upload') ?>" class="btn btn-primary">
-                                <i class="bi bi-upload me-2"></i>Upload First Resource
-                            </a>
+            <!-- Resources Statistics -->
+            <div class="row mb-5">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Total Resources
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count($resources ?? []) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-folder-fill fa-2x opacity-75"></i>
+                                </div>
+                            </div>
                         </div>
-                    <?php else: ?>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--success-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Published
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count(array_filter($resources ?? [], fn($r) => ($r['is_published'] ?? false))) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-eye-fill fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--warning-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Draft
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count(array_filter($resources ?? [], fn($r) => !($r['is_published'] ?? false))) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-file-earmark fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--info-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Total Size
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= number_format(array_sum(array_column($resources ?? [], 'file_size')) / 1024 / 1024, 1) ?>MB
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-hdd fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter and Search Bar -->
+            <div class="card card-modern mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 bg-light" placeholder="Search resources...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 justify-content-md-end">
+                                <select class="form-select border-0 bg-light" style="max-width: 150px;">
+                                    <option>All Types</option>
+                                    <option>PDF</option>
+                                    <option>DOC</option>
+                                    <option>IMG</option>
+                                    <option>VIDEO</option>
+                                </select>
+                                <select class="form-select border-0 bg-light" style="max-width: 150px;">
+                                    <option>All Status</option>
+                                    <option>Published</option>
+                                    <option>Draft</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources List -->
+            <div class="card card-modern">
+                <div class="card-header" style="background: var(--primary-gradient); border: none; color: white;">
+                    <h6 class="m-0 fw-bold">
+                        <i class="bi bi-folder-fill me-2"></i>
+                        Resources Library (<?= count($resources ?? []) ?>)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <?php if (!empty($resources)): ?>
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                <thead class="table-light">
+                                <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Type</th>
-                                        <th>Size</th>
-                                        <th>Uploaded</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
+                                        <th><i class="bi bi-file-earmark me-1"></i>Name</th>
+                                        <th><i class="bi bi-tag me-1"></i>Type</th>
+                                        <th><i class="bi bi-hdd me-1"></i>Size</th>
+                                        <th><i class="bi bi-calendar-upload me-1"></i>Uploaded</th>
+                                        <th><i class="bi bi-flag me-1"></i>Status</th>
+                                        <th class="text-center"><i class="bi bi-gear me-1"></i>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -60,42 +161,104 @@
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark me-2 text-primary"></i>
+                                                    <div class="file-icon me-3">
+                                                        <?php 
+                                                        $fileType = strtolower($resource['file_type'] ?? 'file');
+                                                        switch($fileType) {
+                                                            case 'pdf':
+                                                                $iconClass = 'bi-file-earmark-pdf-fill text-danger';
+                                                                break;
+                                                            case 'doc':
+                                                            case 'docx':
+                                                                $iconClass = 'bi-file-earmark-word-fill text-primary';
+                                                                break;
+                                                            case 'xls':
+                                                            case 'xlsx':
+                                                                $iconClass = 'bi-file-earmark-excel-fill text-success';
+                                                                break;
+                                                            case 'ppt':
+                                                            case 'pptx':
+                                                                $iconClass = 'bi-file-earmark-ppt-fill text-warning';
+                                                                break;
+                                                            case 'jpg':
+                                                            case 'jpeg':
+                                                            case 'png':
+                                                            case 'gif':
+                                                                $iconClass = 'bi-file-earmark-image-fill text-info';
+                                                                break;
+                                                            case 'mp4':
+                                                            case 'avi':
+                                                                $iconClass = 'bi-file-earmark-play-fill text-danger';
+                                                                break;
+                                                            case 'zip':
+                                                            case 'rar':
+                                                                $iconClass = 'bi-file-earmark-zip-fill text-secondary';
+                                                                break;
+                                                            default:
+                                                                $iconClass = 'bi-file-earmark-fill text-muted';
+                                                                break;
+                                                        }
+                                                        ?>
+                                                        <i class="bi <?= $iconClass ?> fs-4"></i>
+                                                    </div>
                                                     <div>
-                                                        <strong><?= esc($resource['name']) ?></strong>
-                                                        <br>
+                                                        <div class="fw-bold"><?= esc($resource['name']) ?></div>
                                                         <small class="text-muted"><?= esc($resource['description'] ?? 'No description') ?></small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info"><?= esc($resource['file_type']) ?></span>
-                                            </td>
-                                            <td>
-                                                <small><?= number_format($resource['file_size'] / 1024, 2) ?> KB</small>
-                                            </td>
-                                            <td>
-                                                <small><?= date('M j, Y', strtotime($resource['created_at'])) ?></small>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-<?= $resource['is_published'] ? 'success' : 'warning'; ?>">
-                                                    <?= $resource['is_published'] ? 'Published' : 'Draft'; ?>
+                                                <span class="badge badge-modern bg-primary">
+                                                    <i class="bi bi-tag me-1"></i><?= esc(strtoupper($resource['file_type'] ?? 'FILE')) ?>
                                                 </span>
                                             </td>
                                             <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="<?= base_url('instructor/resources/download/' . $resource['id']) ?>" 
-                                                       class="btn btn-outline-primary" title="Download">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-hdd text-muted me-2"></i>
+                                                    <span><?= number_format($resource['file_size'] / 1024, 2) ?> KB</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <div class="fw-bold"><?= date('M d, Y', strtotime($resource['created_at'])) ?></div>
+                                                    <small class="text-muted"><?= date('H:i', strtotime($resource['created_at'])) ?></small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <?php 
+                                                $isPublished = $resource['is_published'] ?? false;
+                                                $statusClass = $isPublished ? 'bg-success' : 'bg-warning';
+                                                $statusIcon = $isPublished ? 'eye-fill' : 'eye-slash-fill';
+                                                $statusText = $isPublished ? 'Published' : 'Draft';
+                                                ?>
+                                                <span class="badge badge-modern <?= $statusClass ?>">
+                                                    <i class="bi bi-<?= $statusIcon ?> me-1"></i><?= $statusText ?>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <a href="<?= site_url('instructor/resources/download/' . $resource['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-primary btn-sm"
+                                                       title="Download">
                                                         <i class="bi bi-download"></i>
                                                     </a>
-                                                    <a href="<?= base_url('instructor/resources/edit/' . $resource['id']) ?>" 
-                                                       class="btn btn-outline-secondary" title="Edit">
+                                                    <a href="<?= site_url('instructor/resources/edit/' . $resource['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-warning btn-sm"
+                                                       title="Edit">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
-                                                    <button class="btn btn-outline-danger" 
-                                                            onclick="confirmDelete(<?= $resource['id'] ?>)" title="Delete">
+                                                    <a href="<?= site_url('instructor/resources/delete/' . $resource['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-danger btn-sm"
+                                                       title="Delete">
                                                         <i class="bi bi-trash"></i>
-                                                    </button>
+                                                    </a>
+                                                    <?php if (!$isPublished): ?>
+                                                        <a href="<?= site_url('instructor/resources/publish/' . $resource['id']) ?>" 
+                                                           class="btn btn-modern btn-outline-success btn-sm"
+                                                           title="Publish">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -103,133 +266,54 @@
                                 </tbody>
                             </table>
                         </div>
+                    <?php else: ?>
+                        <!-- No Resources -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-folder-x gradient-icon" style="font-size: 5rem;"></i>
+                            </div>
+                            <h5 class="text-gray-600 mb-3">No Resources Found</h5>
+                            <p class="text-gray-500 mb-4 fs-5">
+                                You haven't uploaded any resources yet. Start by uploading your first resource.
+                            </p>
+                            <a href="<?= site_url('instructor/resources/upload') ?>" class="btn btn-modern btn-primary btn-lg">
+                                <i class="bi bi-cloud-upload me-2"></i>Upload Your First Resource
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Resources
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count($resources ?? []) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-folder-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Published
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count(array_filter($resources ?? [], fn($r) => $r['is_published'])) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-check-circle-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Drafts
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count(array_filter($resources ?? [], fn($r) => !$r['is_published'])) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-pencil-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Total Size
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= number_format(array_sum(array_column($resources ?? [], 'file_size')) / 1024 / 1024, 2) ?> MB
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-hdd-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+<?= $this->endSection() ?>
 
-<?php $this->endSection(); ?>
-
-<?php $this->section('scripts'); ?>
+<?= $this->section('scripts') ?>
 <script>
-function confirmDelete(resourceId) {
-    if (confirm('Are you sure you want to delete this resource? This action cannot be undone.')) {
-        window.location.href = '<?= base_url('instructor/resources/delete/') ?>' + resourceId;
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced hover effects for cards
+    const cards = document.querySelectorAll('.card-modern');
+    cards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
 
-// File type icon mapping
-function getFileIcon(fileType) {
-    const iconMap = {
-        'pdf': 'bi-file-earmark-pdf-fill text-danger',
-        'doc': 'bi-file-earmark-word-fill text-primary',
-        'docx': 'bi-file-earmark-word-fill text-primary',
-        'xls': 'bi-file-earmark-excel-fill text-success',
-        'xlsx': 'bi-file-earmark-excel-fill text-success',
-        'ppt': 'bi-file-earmark-ppt-fill text-warning',
-        'pptx': 'bi-file-earmark-ppt-fill text-warning',
-        'jpg': 'bi-file-earmark-image-fill text-info',
-        'jpeg': 'bi-file-earmark-image-fill text-info',
-        'png': 'bi-file-earmark-image-fill text-info',
-        'gif': 'bi-file-earmark-image-fill text-info',
-        'mp4': 'bi-file-earmark-play-fill text-danger',
-        'mp3': 'bi-file-earmark-music-fill text-success',
-        'zip': 'bi-file-earmark-zip-fill text-secondary',
-        'rar': 'bi-file-earmark-zip-fill text-secondary'
-    };
-    
-    return iconMap[fileType.toLowerCase()] || 'bi-file-earmark-fill text-primary';
-}
-
-// Initialize tooltips
-$(document).ready(function() {
-    $('[data-bs-toggle="tooltip"]').tooltip();
+    // Stats card hover effects
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
 });
 </script>
-
-<?php $this->endSection(); ?>
+<?= $this->endSection() ?>

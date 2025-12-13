@@ -1,237 +1,366 @@
-<?php $this->extend('template'); ?>
+<?= $this->extend('template') ?>
 
-<?php $this->section('content'); ?>
-
-<!-- Schedule Header -->
-<div class="bg-primary text-white py-4">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="h3 mb-2">Course Schedule</h1>
-                <p class="mb-0 opacity-75">
-                    <i class="bi bi-calendar3 me-2"></i>
-                    Manage your course timeline and schedule
-                </p>
-            </div>
-            <div class="col-lg-4 text-end">
-                <div class="d-flex gap-2 justify-content-end">
-                    <a href="<?= base_url('instructor/schedule/create') ?>" class="btn btn-light">
-                        <i class="bi bi-plus-lg me-2"></i>Create Schedule
+<?= $this->section('content') ?>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-5">
+                <div>
+                    <h1 class="h2 page-title mb-2">
+                        <i class="bi bi-calendar3 me-3"></i>Course Schedule
+                    </h1>
+                    <p class="text-muted mb-0">Manage your course timeline and schedule</p>
+                </div>
+                <div>
+                    <a href="<?= site_url('instructor/schedule/create') ?>" class="btn btn-modern btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Create Schedule
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Schedule Content -->
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">My Schedule</h6>
-                        <div class="d-flex gap-2">
-                            <a href="<?= base_url('instructor/schedule/calendar') ?>" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-calendar-week me-1"></i>Calendar View
-                            </a>
-                            <a href="<?= base_url('instructor/schedule/list') ?>" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-list-ul me-1"></i>List View
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <?php if (empty($schedules ?? [])): ?>
-                        <div class="p-4 text-center text-muted">
-                            <i class="bi bi-calendar-x fs-1 mb-3"></i>
-                            <h5>No Schedule Created</h5>
-                            <p class="mb-3">You haven't created any schedules yet. Start by creating your first schedule.</p>
-                            <a href="<?= base_url('instructor/schedule/create') ?>" class="btn btn-primary">
-                                <i class="bi bi-plus me-2"></i>Create Schedule
-                            </a>
-                        </div>
-                    <?php else: ?>
-                        <!-- Calendar View -->
-                        <div class="mb-4">
-                            <h6 class="text-primary mb-3">
-                                <i class="bi bi-calendar3 me-2"></i>
-                                Upcoming Schedule
-                            </h6>
-                            <div class="card border-light">
-                                <div class="card-body p-3">
-                                    <div id="scheduleCalendar" class="text-center">
-                                        <!-- Calendar will be rendered here -->
-                                        <p class="text-muted mb-0">
-                                            <i class="bi bi-hourglass-split"></i>
-                                            Calendar view coming soon...
-                                        </p>
+            <!-- Schedule Statistics -->
+            <div class="row mb-5">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Total Schedules
                                     </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count($schedules ?? []) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-calendar3 fa-2x opacity-75"></i>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Schedule List -->
-                        <div class="mb-4">
-                            <h6 class="text-primary mb-3">
-                                <i class="bi bi-list-ul me-2"></i>
-                                Recent Schedules
-                            </h6>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Course</th>
-                                            <th>Start Date</th>
-                                            <th>End Date</th>
-                                            <th>Type</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($schedules as $schedule): ?>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="bi bi-calendar-event me-2 text-primary"></i>
-                                                        <div>
-                                                            <strong><?= esc($schedule['title']) ?></strong>
-                                                            <br>
-                                                            <small class="text-muted"><?= esc($schedule['description'] ?? 'No description') ?></small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-info"><?= esc($schedule['course_title']) ?></span>
-                                                </td>
-                                                <td>
-                                                    <small><?= date('M j, Y', strtotime($schedule['start_date'])) ?></small>
-                                                </td>
-                                                <td>
-                                                    <small><?= date('M j, Y', strtotime($schedule['end_date'])) ?></small>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-<?= $schedule['type'] === 'lecture' ? 'primary' : ($schedule['type'] === 'assignment' ? 'warning' : 'info') ?>">
-                                                        <?= ucfirst($schedule['type']) ?>
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-<?= $schedule['is_active'] ? 'success' : 'secondary' ?>">
-                                                        <?= $schedule['is_active'] ? 'Active' : 'Inactive' ?>
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <a href="<?= base_url('instructor/schedule/view/' . $schedule['id']) ?>" 
-                                                           class="btn btn-outline-primary" title="View">
-                                                            <i class="bi bi-eye"></i>
-                                                        </a>
-                                                        <a href="<?= base_url('instructor/schedule/edit/' . $schedule['id']) ?>" 
-                                                           class="btn btn-outline-secondary" title="Edit">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <button class="btn btn-outline-danger" 
-                                                                onclick="confirmDelete(<?= $schedule['id'] ?>)" title="Delete">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--success-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Active
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count(array_filter($schedules ?? [], fn($s) => ($s['status'] ?? '') === 'active')) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-play-circle fa-2x opacity-75"></i>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--warning-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Upcoming
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count(array_filter($schedules ?? [], fn($s) => ($s['status'] ?? '') === 'upcoming')) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-clock fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--info-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Completed
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count(array_filter($schedules ?? [], fn($s) => ($s['status'] ?? '') === 'completed')) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-check-circle fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Toggle Buttons -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="btn-group" role="group">
+                    <a href="<?= site_url('instructor/schedule/calendar') ?>" class="btn btn-modern btn-outline-primary">
+                        <i class="bi bi-calendar-week me-2"></i>Calendar View
+                    </a>
+                    <a href="<?= site_url('instructor/schedule') ?>" class="btn btn-modern btn-primary">
+                        <i class="bi bi-list-ul me-2"></i>List View
+                    </a>
+                </div>
+                <div>
+                    <button class="btn btn-modern btn-outline-secondary btn-sm">
+                        <i class="bi bi-filter me-2"></i>Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div class="card card-modern mb-4">
+                <div class="card-header" style="background: var(--primary-gradient); border: none; color: white;">
+                    <h6 class="m-0 fw-bold">
+                        <i class="bi bi-calendar-week me-2"></i>
+                        Calendar Overview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="scheduleCalendar" class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-calendar-range gradient-icon" style="font-size: 4rem;"></i>
+                        </div>
+                        <h5 class="text-gray-600 mb-3">Interactive Calendar</h5>
+                        <p class="text-gray-500 mb-4">
+                            Visual schedule management coming soon...
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-modern btn-primary btn-sm">
+                                <i class="bi bi-calendar-month me-2"></i>Month View
+                            </button>
+                            <button class="btn btn-modern btn-outline-primary btn-sm">
+                                <i class="bi bi-calendar-week me-2"></i>Week View
+                            </button>
+                            <button class="btn btn-modern btn-outline-primary btn-sm">
+                                <i class="bi bi-calendar-day me-2"></i>Day View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule List -->
+            <div class="card card-modern">
+                <div class="card-header" style="background: var(--primary-gradient); border: none; color: white;">
+                    <h6 class="m-0 fw-bold">
+                        <i class="bi bi-list-task me-2"></i>
+                        Schedule List (<?= count($schedules ?? []) ?>)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <?php if (!empty($schedules)): ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><i class="bi bi-type me-1"></i>Title</th>
+                                        <th><i class="bi bi-book me-1"></i>Course</th>
+                                        <th><i class="bi bi-calendar-event me-1"></i>Start Date</th>
+                                        <th><i class="bi bi-calendar-check me-1"></i>End Date</th>
+                                        <th><i class="bi bi-tag me-1"></i>Type</th>
+                                        <th><i class="bi bi-flag me-1"></i>Status</th>
+                                        <th class="text-center"><i class="bi bi-gear me-1"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($schedules as $schedule): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-calendar-event gradient-icon me-2" style="font-size: 1.2rem;"></i>
+                                                    <div>
+                                                        <div class="fw-bold"><?= esc($schedule['title'] ?? 'Untitled Schedule') ?></div>
+                                                        <small class="text-muted"><?= substr(strip_tags($schedule['description'] ?? ''), 0, 50) ?>...</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-book text-primary me-2"></i>
+                                                    <div>
+                                                        <div class="fw-bold"><?= esc($schedule['course_title'] ?? 'N/A') ?></div>
+                                                        <small class="text-muted"><?= esc($schedule['course_code'] ?? 'N/A') ?></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <div class="fw-bold"><?= date('M d, Y', strtotime($schedule['start_date'] ?? 'now')) ?></div>
+                                                    <small class="text-muted"><?= date('H:i', strtotime($schedule['start_time'] ?? '09:00')) ?></small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <div class="fw-bold"><?= date('M d, Y', strtotime($schedule['end_date'] ?? 'now')) ?></div>
+                                                    <small class="text-muted"><?= date('H:i', strtotime($schedule['end_time'] ?? '17:00')) ?></small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <?php 
+                                                $type = $schedule['type'] ?? 'lecture';
+                                                switch($type) {
+                                                    case 'lecture':
+                                                        $typeClass = 'bg-primary';
+                                                        break;
+                                                    case 'lab':
+                                                        $typeClass = 'bg-success';
+                                                        break;
+                                                    case 'exam':
+                                                        $typeClass = 'bg-danger';
+                                                        break;
+                                                    case 'assignment':
+                                                        $typeClass = 'bg-warning';
+                                                        break;
+                                                    default:
+                                                        $typeClass = 'bg-secondary';
+                                                        break;
+                                                }
+                                                ?>
+                                                <span class="badge badge-modern <?= $typeClass ?>">
+                                                    <?php 
+                                                    switch($type) {
+                                                        case 'lecture':
+                                                            echo '<i class="bi bi-mic me-1"></i>';
+                                                            break;
+                                                        case 'lab':
+                                                            echo '<i class="bi bi-beaker me-1"></i>';
+                                                            break;
+                                                        case 'exam':
+                                                            echo '<i class="bi bi-clipboard-check me-1"></i>';
+                                                            break;
+                                                        case 'assignment':
+                                                            echo '<i class="bi bi-file-earmark-text me-1"></i>';
+                                                            break;
+                                                        default:
+                                                            echo '<i class="bi bi-tag me-1"></i>';
+                                                            break;
+                                                    }
+                                                    ?>
+                                                    <?= ucfirst($type) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <?php 
+                                                $status = $schedule['status'] ?? 'upcoming';
+                                                switch($status) {
+                                                    case 'active':
+                                                        $statusClass = 'bg-success';
+                                                        break;
+                                                    case 'completed':
+                                                        $statusClass = 'bg-info';
+                                                        break;
+                                                    case 'cancelled':
+                                                        $statusClass = 'bg-danger';
+                                                        break;
+                                                    default:
+                                                        $statusClass = 'bg-warning';
+                                                        break;
+                                                }
+                                                ?>
+                                                <span class="badge badge-modern <?= $statusClass ?>">
+                                                    <?php 
+                                                    switch($status) {
+                                                        case 'active':
+                                                            echo '<i class="bi bi-play-circle me-1"></i>';
+                                                            break;
+                                                        case 'completed':
+                                                            echo '<i class="bi bi-check-circle me-1"></i>';
+                                                            break;
+                                                        case 'cancelled':
+                                                            echo '<i class="bi bi-x-circle me-1"></i>';
+                                                            break;
+                                                        default:
+                                                            echo '<i class="bi bi-clock me-1"></i>';
+                                                            break;
+                                                    }
+                                                    ?>
+                                                    <?= ucfirst($status) ?>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <a href="<?= site_url('instructor/schedule/view/' . $schedule['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-primary btn-sm"
+                                                       title="View Schedule">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="<?= site_url('instructor/schedule/edit/' . $schedule['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-warning btn-sm"
+                                                       title="Edit Schedule">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a href="<?= site_url('instructor/schedule/delete/' . $schedule['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-danger btn-sm"
+                                                       title="Delete Schedule">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <!-- No Schedules -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-calendar-x gradient-icon" style="font-size: 5rem;"></i>
+                            </div>
+                            <h5 class="text-gray-600 mb-3">No Schedules Created</h5>
+                            <p class="text-gray-500 mb-4 fs-5">
+                                You haven't created any schedules yet. Start by creating your first schedule.
+                            </p>
+                            <a href="<?= site_url('instructor/schedule/create') ?>" class="btn btn-modern btn-primary btn-lg">
+                                <i class="bi bi-plus-circle me-2"></i>Create Your First Schedule
+                            </a>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Schedules
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count($schedules ?? []) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-calendar-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Active
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count(array_filter($schedules ?? [], fn($s) => $s['is_active'])) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-check-circle-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                This Week
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count(array_filter($schedules ?? [], fn($s) => $s['is_active'] && date('Y-W', strtotime($s['start_date'])) === date('Y-W'))) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-calendar-week fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+<?= $this->endSection() ?>
 
-<?php $this->endSection(); ?>
-
-<?php $this->section('scripts'); ?>
+<?= $this->section('scripts') ?>
 <script>
-function confirmDelete(scheduleId) {
-    if (confirm('Are you sure you want to delete this schedule? This action cannot be undone.')) {
-        window.location.href = '<?= base_url('instructor/schedule/delete/') ?>' + scheduleId;
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced hover effects for cards
+    const cards = document.querySelectorAll('.card-modern');
+    cards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
 
-// Initialize tooltips
-$(document).ready(function() {
-    $('[data-bs-toggle="tooltip"]').tooltip();
-    
-    // Simple calendar placeholder
-    $('#scheduleCalendar').html('<div class="text-muted">Calendar view will be implemented here</div>');
+    // Stats card hover effects
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
 });
 </script>
-
-<?php $this->endSection(); ?>
+<?= $this->endSection() ?>

@@ -28,6 +28,7 @@ class AssignmentModel extends Model
                 'description' => 'Create a simple HTML page with basic structure and styling using CSS.',
                 'course_id' => 1,
                 'course_title' => 'Web Development Fundamentals',
+                'course_code' => 'WEB101',
                 'due_date' => date('Y-m-d H:i:s', strtotime('+7 days')),
                 'max_points' => 100,
                 'status' => 'pending',
@@ -40,33 +41,44 @@ class AssignmentModel extends Model
                 'description' => 'Write JavaScript functions to solve common programming problems and demonstrate understanding of core concepts.',
                 'course_id' => 1,
                 'course_title' => 'Web Development Fundamentals',
+                'course_code' => 'WEB101',
                 'due_date' => date('Y-m-d H:i:s', strtotime('+5 days')),
                 'max_points' => 100,
-                'status' => 'pending',
-                'grade' => null,
+                'status' => 'completed',
+                'grade' => 85,
                 'created_at' => date('Y-m-d H:i:s', strtotime('-2 days'))
             ],
             [
                 'id' => 3,
                 'title' => 'Database Design Project',
-                'description' => 'Design and implement a relational database schema for a small business application.',
+                'description' => 'Design and implement a relational database schema for an e-commerce system.',
                 'course_id' => 2,
-                'course_title' => 'Database Management',
-                'due_date' => date('Y-m-d H:i:s', strtotime('+10 days')),
+                'course_title' => 'Database Management Systems',
+                'course_code' => 'DB201',
+                'due_date' => date('Y-m-d H:i:s', strtotime('-2 days')),
                 'max_points' => 150,
+                'status' => 'overdue',
+                'grade' => null,
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 week'))
+            ],
+            [
+                'id' => 4,
+                'title' => 'Python Programming Quiz',
+                'description' => 'Complete a comprehensive quiz covering Python basics, data structures, and functions.',
+                'course_id' => 3,
+                'course_title' => 'Python Programming',
+                'course_code' => 'PY301',
+                'due_date' => date('Y-m-d H:i:s', strtotime('+3 days')),
+                'max_points' => 50,
                 'status' => 'pending',
                 'grade' => null,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-1 day'))
+                'created_at' => date('Y-m-d H:i:s', strtotime('-5 days'))
             ]
         ];
-
-        if ($limit) {
-            return array_slice($mockAssignments, 0, $limit);
-        }
-
-        return $mockAssignments;
+        
+        return $limit ? array_slice($mockAssignments, 0, $limit) : $mockAssignments;
     }
-
+    
     /**
      * Get pending assignments for a student
      */
@@ -186,7 +198,7 @@ class AssignmentModel extends Model
      */
     public function getInstructorAssignments($instructorId)
     {
-        // Return mock data for instructor assignments
+        // Return mock data for instructor assignments with all required fields
         return [
             [
                 'id' => 1,
@@ -194,9 +206,11 @@ class AssignmentModel extends Model
                 'description' => 'Create a simple HTML page with basic structure and styling using CSS.',
                 'course_id' => 1,
                 'course_title' => 'Web Development Fundamentals',
+                'course_code' => 'WEB101',
                 'due_date' => date('Y-m-d H:i:s', strtotime('+7 days')),
                 'max_points' => 100,
                 'status' => 'published',
+                'submission_count' => 15,
                 'created_at' => date('Y-m-d H:i:s', strtotime('-3 days'))
             ],
             [
@@ -205,11 +219,49 @@ class AssignmentModel extends Model
                 'description' => 'Write JavaScript functions to solve common programming problems and demonstrate understanding of core concepts.',
                 'course_id' => 1,
                 'course_title' => 'Web Development Fundamentals',
+                'course_code' => 'WEB101',
                 'due_date' => date('Y-m-d H:i:s', strtotime('+5 days')),
                 'max_points' => 100,
                 'status' => 'published',
+                'submission_count' => 8,
                 'created_at' => date('Y-m-d H:i:s', strtotime('-2 days'))
+            ],
+            [
+                'id' => 3,
+                'title' => 'Database Design Project',
+                'description' => 'Design and implement a relational database schema for an e-commerce system.',
+                'course_id' => 2,
+                'course_title' => 'Database Management Systems',
+                'course_code' => 'DB201',
+                'due_date' => date('Y-m-d H:i:s', strtotime('+10 days')),
+                'max_points' => 150,
+                'status' => 'draft',
+                'submission_count' => 0,
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 day'))
+            ],
+            [
+                'id' => 4,
+                'title' => 'Python Programming Quiz',
+                'description' => 'Complete a comprehensive quiz covering Python basics, data structures, and functions.',
+                'course_id' => 3,
+                'course_title' => 'Python Programming',
+                'course_code' => 'PY301',
+                'due_date' => date('Y-m-d H:i:s', strtotime('+3 days')),
+                'max_points' => 50,
+                'status' => 'published',
+                'submission_count' => 22,
+                'created_at' => date('Y-m-d H:i:s', strtotime('-5 days'))
             ]
         ];
+    }
+
+    /**
+     * Update assignment status
+     */
+    public function update($id = null, $row = null): bool
+    {
+        // For mock data, we'll just return true since we're not actually updating a database
+        // In a real implementation, this would update the database record
+        return true;
     }
 }

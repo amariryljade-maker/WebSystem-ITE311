@@ -123,10 +123,14 @@ class Student extends BaseController
                 'status' => 'active'
             ];
             
-            if ($this->enrollmentModel->enrollUser($enrollmentData)) {
+            $result = $this->enrollmentModel->enrollUser($enrollmentData);
+            
+            if ($result === true) {
                 session()->setFlashdata('success', 'Course enrolled successfully.');
+            } elseif ($result === 'duplicate') {
+                session()->setFlashdata('error', 'You are already enrolled in this course.');
             } else {
-                session()->setFlashdata('error', 'Failed to enroll in course. You may already be enrolled.');
+                session()->setFlashdata('error', 'Failed to enroll in course. Please try again.');
             }
             
             return redirect()->to('/student/courses');

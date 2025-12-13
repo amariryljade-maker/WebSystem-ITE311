@@ -94,6 +94,12 @@ class EnrollmentModel extends Model
             return $this->insert($data);
         } catch (\Exception $e) {
             log_message('error', 'Enrollment failed: ' . $e->getMessage());
+            
+            // Check if it's a duplicate entry error
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false && strpos($e->getMessage(), 'user_id_course_id') !== false) {
+                return 'duplicate';
+            }
+            
             return false;
         }
     }
