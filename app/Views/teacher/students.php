@@ -19,7 +19,7 @@
             <!-- Student Statistics -->
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card border-left-primary shadow h-100 py-2" style="background: gray;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
