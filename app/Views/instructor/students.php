@@ -1,81 +1,163 @@
-<?php $this->extend('template'); ?>
+<?= $this->extend('template') ?>
 
-<?php $this->section('content'); ?>
-
-<!-- Students Header -->
-<div class="bg-primary text-white py-4">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="h3 mb-2">My Students</h1>
-                <p class="mb-0 opacity-75">
-                    <i class="bi bi-people-fill me-2"></i>
-                    Manage and monitor your enrolled students
-                </p>
-            </div>
-            <div class="col-lg-4 text-end">
-                <div class="d-flex gap-2 justify-content-end">
-                    <a href="<?= base_url('instructor/students/add') ?>" class="btn btn-light">
+<?= $this->section('content') ?>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-sm-flex align-items-center justify-content-between mb-5">
+                <div>
+                    <h1 class="h2 page-title mb-2">
+                        <i class="bi bi-people-fill me-3"></i>My Students
+                    </h1>
+                    <p class="text-muted mb-0">Manage and monitor your enrolled students</p>
+                </div>
+                <div>
+                    <a href="<?= site_url('instructor/students/add') ?>" class="btn btn-modern btn-primary btn-lg">
                         <i class="bi bi-person-plus me-2"></i>Add Student
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Students Content -->
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">Student List</h6>
-                        <div class="d-flex gap-2">
-                            <div class="input-group" style="width: 250px;">
-                                <input type="text" class="form-control form-control-sm" id="searchStudents" placeholder="Search students...">
-                                <button class="btn btn-sm btn-outline-secondary" type="button">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-filter me-1"></i>Filter
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">All Students</a></li>
-                                    <li><a class="dropdown-item" href="#">Active Students</a></li>
-                                    <li><a class="dropdown-item" href="#">Inactive Students</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#">By Course</a></li>
-                                </ul>
+            <!-- Students Statistics -->
+            <div class="row mb-5">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: gray;">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Total Students
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count($students ?? []) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-people-fill fa-2x opacity-75"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <?php if (empty($students ?? [])): ?>
-                        <div class="p-4 text-center text-muted">
-                            <i class="bi bi-people fs-1 mb-3"></i>
-                            <h5>No Students Found</h5>
-                            <p class="mb-3">You don't have any enrolled students yet. Students will appear here when they enroll in your courses.</p>
-                            <a href="<?= base_url('instructor/courses') ?>" class="btn btn-primary">
-                                <i class="bi bi-book me-2"></i>View Courses
-                            </a>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--success-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Active Students
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= count(array_filter($students ?? [], fn($s) => ($s['status'] ?? '') === 'active')) ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-person-check-fill fa-2x opacity-75"></i>
+                                </div>
+                            </div>
                         </div>
-                    <?php else: ?>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--warning-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Average Grade
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= $students ? number_format(array_sum(array_column($students, 'average_grade')) / count($students), 1) : '0.0' ?>%
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-graph-up fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card text-white shadow-lg" style="background: var(--info-gradient);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
+                                        Total Courses
+                                    </div>
+                                    <div class="h1 mb-0 font-weight-bold">
+                                        <?= $students ? array_sum(array_column($students, 'enrolled_courses')) : 0 ?>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="bi bi-book-fill fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="card card-modern mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 bg-light" id="searchStudents" placeholder="Search students...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 justify-content-md-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-modern btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-filter me-1"></i>Filter
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">All Students</a></li>
+                                        <li><a class="dropdown-item" href="#">Active Students</a></li>
+                                        <li><a class="dropdown-item" href="#">Inactive Students</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#">By Course</a></li>
+                                    </ul>
+                                </div>
+                                <button class="btn btn-modern btn-outline-primary btn-sm">
+                                    <i class="bi bi-download me-1"></i>Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students List -->
+            <div class="card card-modern">
+                <div class="card-header" style="background: var(--primary-gradient); border: none; color: white;">
+                    <h6 class="m-0 fw-bold">
+                        <i class="bi bi-people-fill me-2"></i>
+                        Student Roster (<?= count($students ?? []) ?>)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <?php if (!empty($students)): ?>
                         <div class="table-responsive">
                             <table class="table table-hover" id="studentsTable">
-                                <thead class="table-light">
+                                <thead>
                                     <tr>
-                                        <th>Student</th>
-                                        <th>Email</th>
-                                        <th>Enrolled Courses</th>
-                                        <th>Status</th>
-                                        <th>Last Activity</th>
-                                        <th>Performance</th>
-                                        <th>Actions</th>
+                                        <th><i class="bi bi-person me-1"></i>Student</th>
+                                        <th><i class="bi bi-envelope me-1"></i>Email</th>
+                                        <th><i class="bi bi-book me-1"></i>Enrolled Courses</th>
+                                        <th><i class="bi bi-flag me-1"></i>Status</th>
+                                        <th><i class="bi bi-clock-history me-1"></i>Last Activity</th>
+                                        <th><i class="bi bi-graph-up me-1"></i>Performance</th>
+                                        <th class="text-center"><i class="bi bi-gear me-1"></i>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -83,58 +165,89 @@
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                    <div class="avatar bg-primary text-white rounded-circle me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
                                                         <?= strtoupper(substr($student['first_name'], 0, 1) . substr($student['last_name'], 0, 1)) ?>
                                                     </div>
                                                     <div>
-                                                        <strong><?= esc($student['first_name'] . ' ' . $student['last_name']) ?></strong>
-                                                        <br>
+                                                        <div class="fw-bold"><?= esc($student['first_name'] . ' ' . $student['last_name']) ?></div>
                                                         <small class="text-muted">ID: <?= esc($student['student_id'] ?? 'N/A') ?></small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <a href="mailto:<?= esc($student['email']) ?>" class="text-decoration-none">
-                                                    <?= esc($student['email']) ?>
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex flex-wrap gap-1">
-                                                    <?php foreach ($student['courses'] ?? [] as $course): ?>
-                                                        <span class="badge bg-info"><?= esc($course['title']) ?></span>
-                                                    <?php endforeach; ?>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-envelope text-muted me-2"></i>
+                                                    <span><?= esc($student['email']) ?></span>
                                                 </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-<?= $student['is_active'] ? 'success' : 'secondary' ?>">
-                                                    <?= $student['is_active'] ? 'Active' : 'Inactive' ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <small><?= $student['last_activity'] ? date('M j, Y g:i A', strtotime($student['last_activity'])) : 'Never' ?></small>
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="progress me-2" style="width: 60px; height: 8px;">
-                                                        <div class="progress-bar bg-<?= $student['average_grade'] >= 80 ? 'success' : ($student['average_grade'] >= 60 ? 'warning' : 'danger') ?>" 
-                                                             style="width: <?= $student['average_grade'] ?? 0 ?>%"></div>
-                                                    </div>
-                                                    <small><?= number_format($student['average_grade'] ?? 0, 1) ?>%</small>
+                                                    <i class="bi bi-book text-primary me-2"></i>
+                                                    <span class="badge badge-modern bg-primary">
+                                                        <?= $student['enrolled_courses'] ?? 0 ?> Courses
+                                                    </span>
                                                 </div>
                                             </td>
                                             <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="<?= base_url('instructor/students/view/' . $student['id']) ?>" 
-                                                       class="btn btn-outline-primary" title="View Profile">
-                                                        <i class="bi bi-person"></i>
+                                                <?php 
+                                                $status = $student['status'] ?? 'active';
+                                                switch($status) {
+                                                    case 'active':
+                                                        $statusClass = 'bg-success';
+                                                        $statusIcon = 'person-check-fill';
+                                                        break;
+                                                    case 'inactive':
+                                                        $statusClass = 'bg-danger';
+                                                        $statusIcon = 'person-x-fill';
+                                                        break;
+                                                    case 'pending':
+                                                        $statusClass = 'bg-warning';
+                                                        $statusIcon = 'person-dash-fill';
+                                                        break;
+                                                    default:
+                                                        $statusClass = 'bg-secondary';
+                                                        $statusIcon = 'person-fill';
+                                                        break;
+                                                }
+                                                ?>
+                                                <span class="badge badge-modern <?= $statusClass ?>">
+                                                    <i class="bi bi-<?= $statusIcon ?> me-1"></i><?= ucfirst($status) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <div class="fw-bold"><?= date('M d, Y', strtotime($student['last_activity'] ?? 'now')) ?></div>
+                                                    <small class="text-muted"><?= date('H:i', strtotime($student['last_activity'] ?? 'now')) ?></small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <?php 
+                                                    $grade = $student['average_grade'] ?? 0;
+                                                    $gradeClass = $grade >= 80 ? 'bg-success' : ($grade >= 60 ? 'bg-warning' : 'bg-danger');
+                                                    ?>
+                                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                        <div class="progress-bar <?= $gradeClass ?>" style="width: <?= $grade ?>%"></div>
+                                                    </div>
+                                                    <span class="badge badge-modern <?= $gradeClass ?>"><?= $grade ?>%</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <a href="<?= site_url('instructor/students/view/' . $student['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-primary btn-sm"
+                                                       title="View Student">
+                                                        <i class="bi bi-eye"></i>
                                                     </a>
-                                                    <a href="<?= base_url('instructor/students/grades/' . $student['id']) ?>" 
-                                                       class="btn btn-outline-success" title="View Grades">
+                                                    <a href="<?= site_url('instructor/students/grades/' . $student['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-success btn-sm"
+                                                       title="View Grades">
                                                         <i class="bi bi-graph-up"></i>
                                                     </a>
-                                                    <a href="<?= base_url('instructor/students/message/' . $student['id']) ?>" 
-                                                       class="btn btn-outline-info" title="Send Message">
-                                                        <i class="bi bi-envelope"></i>
+                                                    <a href="<?= site_url('instructor/students/message/' . $student['id']) ?>" 
+                                                       class="btn btn-modern btn-outline-info btn-sm"
+                                                       title="Send Message">
+                                                        <i class="bi bi-chat-dots"></i>
                                                     </a>
                                                 </div>
                                             </td>
@@ -143,200 +256,68 @@
                                 </tbody>
                             </table>
                         </div>
+                    <?php else: ?>
+                        <!-- No Students -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-people gradient-icon" style="font-size: 5rem;"></i>
+                            </div>
+                            <h5 class="text-gray-600 mb-3">No Students Found</h5>
+                            <p class="text-gray-500 mb-4 fs-5">
+                                You don't have any enrolled students yet. Students will appear here when they enroll in your courses.
+                            </p>
+                            <a href="<?= site_url('instructor/courses') ?>" class="btn btn-modern btn-primary btn-lg">
+                                <i class="bi bi-book me-2"></i>View Courses
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Students
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count($students ?? []) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-people-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Active Students
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count(array_filter($students ?? [], fn($s) => $s['is_active'])) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-person-check-fill fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Average Grade
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= $students ? number_format(array_sum(array_column($students, 'average_grade')) / count($students), 1) : 0 ?>%
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-graph-up fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Recent Activity
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= count(array_filter($students ?? [], fn($s) => $s['last_activity'] && strtotime($s['last_activity']) > strtotime('-7 days'))) ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-clock-history fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Performance Overview -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-light py-3">
-                    <h6 class="m-0 font-weight-bold text-info">
-                        <i class="bi bi-graph-up me-2"></i>Performance Overview
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="fw-semibold">Grade Distribution</h6>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small>Excellent (90-100%)</small>
-                                    <small><?= count(array_filter($students ?? [], fn($s) => ($s['average_grade'] ?? 0) >= 90)) ?></small>
-                                </div>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-success" style="width: <?= $students ? (count(array_filter($students, fn($s) => ($s['average_grade'] ?? 0) >= 90)) / count($students) * 100) : 0 ?>%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small>Good (80-89%)</small>
-                                    <small><?= count(array_filter($students ?? [], fn($s) => ($s['average_grade'] ?? 0) >= 80 && ($s['average_grade'] ?? 0) < 90)) ?></small>
-                                </div>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-info" style="width: <?= $students ? (count(array_filter($students, fn($s) => ($s['average_grade'] ?? 0) >= 80 && ($s['average_grade'] ?? 0) < 90)) / count($students) * 100) : 0 ?>%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small>Average (70-79%)</small>
-                                    <small><?= count(array_filter($students ?? [], fn($s) => ($s['average_grade'] ?? 0) >= 70 && ($s['average_grade'] ?? 0) < 80)) ?></small>
-                                </div>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-warning" style="width: <?= $students ? (count(array_filter($students, fn($s) => ($s['average_grade'] ?? 0) >= 70 && ($s['average_grade'] ?? 0) < 80)) / count($students) * 100) : 0 ?>%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small>Below Average (<70%)</small>
-                                    <small><?= count(array_filter($students ?? [], fn($s) => ($s['average_grade'] ?? 0) < 70)) ?></small>
-                                </div>
-                                <div class="progress" style="height: 10px;">
-                                    <div class="progress-bar bg-danger" style="width: <?= $students ? (count(array_filter($students, fn($s) => ($s['average_grade'] ?? 0) < 70)) / count($students) * 100) : 0 ?>%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="fw-semibold">Quick Actions</h6>
-                            <div class="list-group">
-                                <a href="<?= base_url('instructor/students/export') ?>" class="list-group-item list-group-item-action">
-                                    <i class="bi bi-download me-2"></i>Export Student List
-                                </a>
-                                <a href="<?= base_url('instructor/assignments') ?>" class="list-group-item list-group-item-action">
-                                    <i class="bi bi-clipboard-check me-2"></i>View Assignments
-                                </a>
-                                <a href="<?= base_url('instructor/grades') ?>" class="list-group-item list-group-item-action">
-                                    <i class="bi bi-graph-up me-2"></i>Manage Grades
-                                </a>
-                                <a href="<?= base_url('instructor/announcements') ?>" class="list-group-item list-group-item-action">
-                                    <i class="bi bi-megaphone me-2"></i>Send Announcement
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+<?= $this->endSection() ?>
 
-<?php $this->endSection(); ?>
-
-<?php $this->section('scripts'); ?>
+<?= $this->section('scripts') ?>
 <script>
-// Initialize DataTables
-$(document).ready(function() {
-    $('#studentsTable').DataTable({
-        responsive: true,
-        pageLength: 25,
-        order: [[0, 'asc']], // Sort by student name
-        columns: [
-            { orderable: true },
-            { orderable: true },
-            { orderable: false },
-            { orderable: true },
-            { orderable: true },
-            { orderable: true },
-            { orderable: false }
-        ]
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced hover effects for cards
+    const cards = document.querySelectorAll('.card-modern');
+    cards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
     });
-    
-    // Search functionality
-    $('#searchStudents').on('keyup', function() {
-        $('#studentsTable').DataTable().search(this.value).draw();
-    });
-});
 
-// Initialize tooltips
-$(document).ready(function() {
-    $('[data-bs-toggle="tooltip"]').tooltip();
+    // Stats card hover effects
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchStudents');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#studentsTable tbody tr');
+            
+            rows.forEach(function(row) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
 });
 </script>
-
-<?php $this->endSection(); ?>
+<?= $this->endSection() ?>
