@@ -222,17 +222,9 @@
                         </div>
                         <div class="card-body">
                             <?php 
-                            $instructorName = 'Not Assigned';
                             $instructorId = $course['instructor_id'] ?? null;
-                            if ($instructorId) {
-                                $instructors = [
-                                    1 => 'Dr. Michael Chen',
-                                    2 => 'Prof. Emily Davis',
-                                    3 => 'Lisa Anderson',
-                                    4 => 'Thomas Lee'
-                                ];
-                                $instructorName = $instructors[$instructorId] ?? 'Unknown Instructor';
-                            }
+                            $instructorName = $course['instructor_name'] ?? 'Not Assigned';
+                            $instructorEmail = $course['instructor_email'] ?? null;
                             ?>
                             <div class="d-flex align-items-center mb-3">
                                 <div class="instructor-avatar bg-info text-white rounded-circle me-3" 
@@ -247,11 +239,15 @@
                             <div class="bg-light p-3 rounded">
                                 <div class="d-flex align-items-center mb-2">
                                     <i class="bi bi-envelope text-muted me-2"></i>
-                                    <span><?= strtolower(str_replace(' ', '.', $instructorName)) ?>@university.edu</span>
+                                    <?php if (!empty($instructorEmail)): ?>
+                                        <span><?= esc($instructorEmail) ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">Not available</span>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-telephone text-muted me-2"></i>
-                                    <span>+1 (555) 123-4567</span>
+                                    <span class="text-muted">Not available</span>
                                 </div>
                             </div>
                         </div>

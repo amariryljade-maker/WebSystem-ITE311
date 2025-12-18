@@ -3,15 +3,18 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\EnrollmentModel;
 use App\Libraries\AppLogger;
 
 class Auth extends BaseController
 {
     protected $userModel;
+    protected $enrollmentModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
+        $this->enrollmentModel = new EnrollmentModel();
         
         // Load session helper
         helper('session');
@@ -439,17 +442,12 @@ class Auth extends BaseController
                 // ========== STUDENT DASHBOARD DATA ==========
                 $dashboardData['dashboard_type'] = 'student';
                 $dashboardData['page_title'] = 'Student Dashboard';
-                
-                // Get student's enrolled courses (assuming enrollments table exists)
-                // $dashboardData['enrolled_courses'] = $db->table('enrollments')
-                //     ->join('courses', 'courses.id = enrollments.course_id')
-                //     ->where('enrollments.user_id', $userId)
-                //     ->get()
-                //     ->getResultArray();
-                
-                // For now, add placeholder data
-                $dashboardData['enrolled_courses_count'] = 0;
-                $dashboardData['completed_courses'] = 0;
+
+                // Use real enrollment counts from enrollments table
+                $dashboardData['enrolled_courses_count'] = $this->enrollmentModel->countUserEnrollments($userId);
+                $dashboardData['completed_courses'] = $this->enrollmentModel->countUserCompletedEnrollments($userId);
+
+                // Other student metrics are placeholders for now until those features are wired up
                 $dashboardData['pending_assignments'] = 0;
                 $dashboardData['upcoming_quizzes'] = 0;
                 

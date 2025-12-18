@@ -9,7 +9,7 @@ class NotificationModel extends Model
     protected $table = 'notifications';
     protected $primaryKey = 'id';
     protected $allowedFields = [
-        'user_id', 'title', 'message', 'type', 'data', 'is_read', 'created_at'
+        'user_id', 'message', 'is_read', 'created_at'
     ];
     protected $useTimestamps = false;
     protected $returnType = 'array';
@@ -22,6 +22,16 @@ class NotificationModel extends Model
         return $this->where('user_id', $userId)
                     ->orderBy('created_at', 'DESC')
                     ->findAll($limit, $offset);
+    }
+
+    /**
+     * Get latest notifications for a user (limit 5)
+     */
+    public function getNotificationsForUser($userId)
+    {
+        return $this->where('user_id', $userId)
+                    ->orderBy('created_at', 'DESC')
+                    ->findAll(5);
     }
 
     /**
@@ -46,7 +56,17 @@ class NotificationModel extends Model
     /**
      * Mark notification as read
      */
-    public function markAsRead($notificationId, $userId)
+    public function markAsRead($notificationId)
+    {
+        return $this->where('id', $notificationId)
+                    ->set(['is_read' => 1])
+                    ->update();
+    }
+
+    /**
+     * Mark notification as read (with user validation)
+     */
+    public function markAsReadWithUser($notificationId, $userId)
     {
         return $this->where('id', $notificationId)
                     ->where('user_id', $userId)
@@ -68,14 +88,11 @@ class NotificationModel extends Model
     /**
      * Create a new notification
      */
-    public function createNotification($userId, $title, $message, $type = 'info', $data = [])
+    public function createNotification($userId, $message)
     {
         $notificationData = [
             'user_id' => $userId,
-            'title' => $title,
             'message' => $message,
-            'type' => $type,
-            'data' => json_encode($data),
             'is_read' => 0,
             'created_at' => date('Y-m-d H:i:s')
         ];

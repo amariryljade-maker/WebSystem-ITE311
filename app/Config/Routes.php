@@ -212,8 +212,16 @@ $routes->group('student', ['filter' => 'auth'], function($routes) {
     $routes->post('courses/enroll', 'Student::enrollCourses');
     $routes->get('enroll_courses', 'Student::enrollCourses');
     $routes->post('enroll_courses', 'Student::enrollCourses');
+
+    // Test routes for enrollment debugging
+    $routes->get('test-db', 'Student::testDb');
+    $routes->get('test-table', 'Student::testTable');
+    $routes->get('check-enrollment', 'Student::checkEnrollment');
+    $routes->post('test-enrollment', 'Student::testEnrollment');
+    $routes->get('show-enrollments', 'Student::showEnrollments');
     $routes->get('courses/view/(:num)', 'Student::viewCourse/$1');
     $routes->get('assignments', 'Student::assignments');
+    $routes->get('assignments/(:num)', 'Student::viewAssignment/$1');
     $routes->get('assignments/view/(:num)', 'Student::viewAssignment/$1');
     $routes->get('view_assignment/(:num)', 'Student::viewAssignment/$1');
     $routes->get('assignments/submit/(:num)', 'Student::submitAssignment/$1');
@@ -244,6 +252,10 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('notifications', 'Notification::index');
     $routes->get('notifications/mark-read/(:num)', 'Notification::markRead/$1');
     $routes->get('notifications/mark-all-read', 'Notification::markAllRead');
+    $routes->get('notifications/get-unread-count', 'Notification::getUnreadCount');
+    $routes->get('notifications/get-recent-notifications', 'Notification::getRecentNotifications');
+    $routes->post('notifications/mark-read-ajax', 'Notification::markReadAjax');
+    $routes->post('notifications/mark-all-read-ajax', 'Notification::markAllReadAjax');
     $routes->get('help', 'Help::index');
     $routes->get('help/faq', 'Help::faq');
     $routes->get('help/contact', 'Help::contact');
@@ -268,6 +280,12 @@ $routes->group('course', ['filter' => 'auth'], function($routes) {
 $routes->get('courses', 'Course::index');
 $routes->get('courses/view/(:num)', 'Course::show/$1');
 $routes->get('courses/category/(:any)', 'Course::category/$1');
+
+// Course Search Routes
+$routes->get('courses/search', 'Course::search');
+$routes->get('courses/suggestions', 'Course::getSuggestions');
+$routes->get('courses/filters', 'Course::getFilters');
+$routes->get('search', 'Course::search'); // Direct search route
 
 // ============================================================
 // DEFAULT ASSIGNMENTS ROUTE (Role-based redirect)
@@ -295,10 +313,15 @@ $routes->get('instructor/courses/standalone', 'Instructor::coursesStandalone');
 // ============================================================
 // MATERIALS ROUTES
 // ============================================================
-$routes->get('/admin/course/(:num)/upload', 'Materials::upload/$1');
-$routes->post('/admin/course/(:num)/upload', 'Materials::upload/$1');
-$routes->get('/materials/delete/(:num)', 'Materials::delete/$1');
-$routes->get('/materials/download/(:num)', 'Materials::download/$1');
+$routes->group('materials', ['filter' => 'auth'], function($routes) {
+    $routes->get('delete/(:num)', 'Materials::delete/$1');
+    $routes->get('download/(:num)', 'Materials::download/$1');
+});
+
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
+    $routes->get('course/(:num)/upload', 'Materials::upload/$1');
+    $routes->post('course/(:num)/upload', 'Materials::upload/$1');
+});
 
 // Additional materials routes for instructors
 $routes->group('instructor', ['filter' => 'auth'], function($routes) {
@@ -310,6 +333,12 @@ $routes->group('instructor', ['filter' => 'auth'], function($routes) {
 $routes->group('student', ['filter' => 'auth'], function($routes) {
     $routes->get('courses/(:num)/materials', 'Student::courseMaterials/$1');
 });
+
+// ============================================================
+// NOTIFICATIONS API ROUTES
+// ============================================================
+$routes->get('/notifications', 'Notifications::get');
+$routes->post('/notifications/mark_read/(:num)', 'Notifications::mark_as_read/$1');
 
 // ============================================================
 // ERROR ROUTES

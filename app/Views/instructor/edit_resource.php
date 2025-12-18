@@ -40,13 +40,16 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="course" class="form-label fw-bold">Course *</label>
-                                    <select class="form-select" id="course" name="course" required>
+                                    <label for="course_id" class="form-label fw-bold">Course *</label>
+                                    <select class="form-select" id="course_id" name="course_id" required>
                                         <option value="">Select Course</option>
-                                        <option value="WEB101" <?= ($resource['course'] ?? '') === 'WEB101' ? 'selected' : '' ?>>WEB101 - Web Development Fundamentals</option>
-                                        <option value="DB201" <?= ($resource['course'] ?? '') === 'DB201' ? 'selected' : '' ?>>DB201 - Database Management Systems</option>
-                                        <option value="PY301" <?= ($resource['course'] ?? '') === 'PY301' ? 'selected' : '' ?>>PY301 - Python Programming</option>
-                                        <option value="CS401" <?= ($resource['course'] ?? '') === 'CS401' ? 'selected' : '' ?>>CS401 - Computer Science Fundamentals</option>
+                                        <?php if (!empty($courses ?? [])): ?>
+                                            <?php foreach ($courses as $course): ?>
+                                                <option value="<?= $course['id'] ?>" <?= ($resource['course_id'] ?? null) == $course['id'] ? 'selected' : '' ?>>
+                                                    <?= esc($course['title']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </select>
                                     <div class="form-text">Select the course for this resource</div>
                                 </div>

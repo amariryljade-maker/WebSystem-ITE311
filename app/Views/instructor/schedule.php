@@ -22,7 +22,7 @@
             <!-- Schedule Statistics -->
             <div class="row mb-5">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg">
+                    <div class="card stats-card shadow-lg" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
@@ -197,14 +197,26 @@
                                             </td>
                                             <td>
                                                 <div>
-                                                    <div class="fw-bold"><?= date('M d, Y', strtotime($schedule['start_date'] ?? 'now')) ?></div>
-                                                    <small class="text-muted"><?= date('H:i', strtotime($schedule['start_time'] ?? '09:00')) ?></small>
+                                                    <div class="fw-bold">
+                                                        <?php if (!empty($schedule['start_date'])): ?>
+                                                            <?= date('M d, Y', strtotime($schedule['start_date'])) ?>
+                                                        <?php else: ?>
+                                                            <?= date('M d, Y', strtotime('today')) ?>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <small class="text-muted"><?= $schedule['start_time'] ?? '09:00' ?></small>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div>
-                                                    <div class="fw-bold"><?= date('M d, Y', strtotime($schedule['end_date'] ?? 'now')) ?></div>
-                                                    <small class="text-muted"><?= date('H:i', strtotime($schedule['end_time'] ?? '17:00')) ?></small>
+                                                    <div class="fw-bold">
+                                                        <?php if (!empty($schedule['end_date'])): ?>
+                                                            <?= date('M d, Y', strtotime($schedule['end_date'])) ?>
+                                                        <?php else: ?>
+                                                            <?= date('M d, Y', strtotime('today')) ?>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <small class="text-muted"><?= $schedule['end_time'] ?? '17:00' ?></small>
                                                 </div>
                                             </td>
                                             <td>
@@ -264,6 +276,9 @@
                                                     case 'cancelled':
                                                         $statusClass = 'bg-danger';
                                                         break;
+                                                    case 'conflict':
+                                                        $statusClass = 'bg-danger';
+                                                        break;
                                                     default:
                                                         $statusClass = 'bg-warning';
                                                         break;
@@ -280,6 +295,9 @@
                                                             break;
                                                         case 'cancelled':
                                                             echo '<i class="bi bi-x-circle me-1"></i>';
+                                                            break;
+                                                        case 'conflict':
+                                                            echo '<i class="bi bi-exclamation-triangle me-1"></i>';
                                                             break;
                                                         default:
                                                             echo '<i class="bi bi-clock me-1"></i>';

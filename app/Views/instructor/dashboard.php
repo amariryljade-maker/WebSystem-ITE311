@@ -10,7 +10,7 @@
                     <h1 class="h2 page-title mb-2">
                         <i class="bi bi-mortarboard-fill me-3"></i>Instructor Dashboard
                     </h1>
-                    <p class="text-muted mb-0">Welcome back, <?= esc($user['name'] ?? 'Instructor') ?>! Here's your teaching overview.</p>
+                    <p class="text-muted mb-0">Welcome, <?= esc($user['name'] ?? 'Instructor') ?>! Here's your teaching overview.</p>
                 </div>
                 <div>
                     <div class="d-flex gap-2">
@@ -28,7 +28,7 @@
             <div class="card card-modern mb-5">
                 <div class="card-header" style="background: var(--primary-gradient); border: none; color: white;">
                     <h6 class="m-0 fw-bold">
-                        <i class="bi bi-person-circle me-2"></i>Welcome Back!
+                        <i class="bi bi-person-circle me-2"></i>Welcome!
                     </h6>
                 </div>
                 <div class="card-body">
@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg" style="background: var(--success-gradient);">
+                    <div class="card stats-card shadow-lg" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">

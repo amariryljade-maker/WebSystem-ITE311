@@ -61,7 +61,7 @@
                     <?php endif; ?>
 
                     <!-- Upload Form -->
-                    <form action="<?= site_url('materials/upload/' . $course['id']) ?>" 
+                    <form action="<?= current_url() ?>" 
                           method="post" 
                           enctype="multipart/form-data"
                           class="needs-validation" 

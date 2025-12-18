@@ -75,14 +75,14 @@
                                     <label class="text-muted small">Phone Number</label>
                                     <div class="fw-bold">
                                         <i class="bi bi-telephone text-muted me-2"></i>
-                                        <?= esc($user['phone']) ?>
+                                        <?= !empty($user['phone']) ? esc($user['phone']) : '<span class="text-muted">Not available</span>' ?>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="text-muted small">Department</label>
                                     <div class="fw-bold">
                                         <i class="bi bi-building text-muted me-2"></i>
-                                        <?= esc($user['department']) ?>
+                                        <?= !empty($user['department']) ? esc($user['department']) : '<span class="text-muted">Not available</span>' ?>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -103,7 +103,11 @@
                                     <label class="text-muted small">Last Login</label>
                                     <div class="fw-bold">
                                         <i class="bi bi-clock-history text-muted me-2"></i>
-                                        <?= date('M d, Y H:i', strtotime($user['last_login'])) ?>
+                                        <?php if (!empty($user['last_login'])): ?>
+                                            <?= date('M d, Y H:i', strtotime($user['last_login'])) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">Not available</span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -111,7 +115,11 @@
                                 <div class="col-12 mb-3">
                                     <label class="text-muted small">Biography</label>
                                     <div class="bg-light p-3 rounded">
-                                        <?= nl2br(esc($user['bio'])) ?>
+                                        <?php if (!empty($user['bio'])): ?>
+                                            <?= nl2br(esc($user['bio'])) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">No biography provided.</span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

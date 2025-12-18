@@ -106,6 +106,117 @@ class Notification extends BaseController
     }
 
     /**
+     * Get recent notifications for dropdown (AJAX endpoint)
+     */
+    public function getRecentNotifications()
+    {
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return $this->response->setJSON(['notifications' => [], 'count' => 0]);
+        }
+
+        $userId = get_user_id();
+        $limit = $this->request->getGet('limit') ?? 5;
+        $notifications = $this->notificationModel->getRecentNotifications($userId, $limit);
+        $unreadCount = $this->notificationModel->getUnreadCount($userId);
+
+        // Format notifications for JSON response
+        $formattedNotifications = [];
+        foreach ($notifications as $notification) {
+            $formattedNotifications[] = [
+                'id' => $notification['id'],
+                'title' => esc($notification['title']),
+                'message' => esc($notification['message']),
+                'type' => $notification['type'],
+                'created_at' => $notification['created_at'],
+                'time_ago' => $this->timeAgo($notification['created_at']),
+                'is_read' => (bool)$notification['is_read']
+            ];
+        }
+
+        return $this->response->setJSON([
+            'notifications' => $formattedNotifications,
+            'count' => $unreadCount
+        ]);
+    }
+
+    /**
+     * Mark notification as read via AJAX
+     */
+    public function markReadAjax()
+    {
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        $notificationId = $this->request->getPost('notification_id');
+        
+        if (!$notificationId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Notification ID required']);
+        }
+
+        $userId = get_user_id();
+        $result = $this->notificationModel->markAsRead($notificationId, $userId);
+
+        if ($result) {
+            $unreadCount = $this->notificationModel->getUnreadCount($userId);
+            return $this->response->setJSON([
+                'success' => true, 
+                'message' => 'Notification marked as read',
+                'unread_count' => $unreadCount
+            ]);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to mark as read']);
+    }
+
+    /**
+     * Mark all notifications as read via AJAX
+     */
+    public function markAllReadAjax()
+    {
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        $userId = get_user_id();
+        $result = $this->notificationModel->markAllAsRead($userId);
+
+        if ($result) {
+            return $this->response->setJSON([
+                'success' => true, 
+                'message' => 'All notifications marked as read'
+            ]);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to mark all as read']);
+    }
+
+    /**
+     * Helper function to convert timestamp to "time ago" format
+     */
+    private function timeAgo($datetime)
+    {
+        $time = strtotime($datetime);
+        $now = time();
+        $diff = $now - $time;
+
+        if ($diff < 60) {
+            return 'just now';
+        } elseif ($diff < 3600) {
+            return floor($diff / 60) . ' minutes ago';
+        } elseif ($diff < 86400) {
+            return floor($diff / 3600) . ' hours ago';
+        } elseif ($diff < 604800) {
+            return floor($diff / 86400) . ' days ago';
+        } else {
+            return date('M j, Y', $time);
+        }
+    }
+
+    /**
      * Create a new notification (utility method)
      */
     public static function create($userId, $title, $message, $type = 'info', $data = [])

@@ -7,7 +7,7 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Welcome Back</h1>
+                <h1 class="display-4 fw-bold mb-4">Welcome</h1>
                 <p class="lead mb-4">Sign in to your account and continue your learning journey with our comprehensive LMS platform.</p>
                 <div class="d-flex flex-wrap gap-3">
                     <div class="d-flex align-items-center text-white-50">

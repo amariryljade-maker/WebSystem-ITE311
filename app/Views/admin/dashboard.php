@@ -332,7 +332,7 @@
                 </div>
             </div>
 
-            <!-- Recent Data Tables -->
+            <!-- Recent Data Tables (real data) -->
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="card card-modern">
@@ -342,34 +342,44 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Username</th>
-                                            <th>Role</th>
-                                            <th>Joined</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>john_student</td>
-                                            <td><span class="badge badge-modern bg-primary">Student</span></td>
-                                            <td>Dec 10, 2025</td>
-                                        </tr>
-                                        <tr>
-                                            <td>jane_teacher</td>
-                                            <td><span class="badge badge-modern bg-info">Teacher</span></td>
-                                            <td>Dec 9, 2025</td>
-                                        </tr>
-                                        <tr>
-                                            <td>mike_admin</td>
-                                            <td><span class="badge badge-modern bg-danger">Admin</span></td>
-                                            <td>Dec 8, 2025</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <?php if (!empty($recent_users)): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Role</th>
+                                                <th>Joined</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($recent_users as $user): ?>
+                                                <tr>
+                                                    <td><?= esc($user['name']) ?></td>
+                                                    <td>
+                                                        <?php
+                                                        $role = $user['role'] ?? 'student';
+                                                        $roleClass = $role === 'admin' ? 'bg-danger' : ($role === 'instructor' ? 'bg-info' : 'bg-success');
+                                                        ?>
+                                                        <span class="badge badge-modern <?= $roleClass ?>">
+                                                            <?= ucfirst($role) ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <?php if (!empty($user['created_at'])): ?>
+                                                            <?= date('M d, Y', strtotime($user['created_at'])) ?>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">N/A</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">No recent users found.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -382,34 +392,36 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Course Title</th>
-                                            <th>Teacher</th>
-                                            <th>Created</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Web Development</td>
-                                            <td>Prof. Johnson</td>
-                                            <td>Dec 11, 2025</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Data Science</td>
-                                            <td>Dr. Smith</td>
-                                            <td>Dec 10, 2025</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Mobile Apps</td>
-                                            <td>Prof. Lee</td>
-                                            <td>Dec 9, 2025</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <?php if (!empty($recent_courses)): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Course Title</th>
+                                                <th>Instructor</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($recent_courses as $course): ?>
+                                                <tr>
+                                                    <td><?= esc($course['title']) ?></td>
+                                                    <td><?= esc($course['instructor_name'] ?? 'Not Assigned') ?></td>
+                                                    <td>
+                                                        <?php if (!empty($course['created_at'])): ?>
+                                                            <?= date('M d, Y', strtotime($course['created_at'])) ?>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">N/A</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">No recent courses found.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -422,34 +434,36 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Student</th>
-                                            <th>Course</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>John Doe</td>
-                                            <td>Web Dev</td>
-                                            <td>Dec 11, 2025</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jane Smith</td>
-                                            <td>Data Sci</td>
-                                            <td>Dec 10, 2025</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Mike Lee</td>
-                                            <td>Mobile Apps</td>
-                                            <td>Dec 9, 2025</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <?php if (!empty($recent_enrollments)): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Course</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($recent_enrollments as $enrollment): ?>
+                                                <tr>
+                                                    <td><?= esc($enrollment['student_name']) ?></td>
+                                                    <td><?= esc($enrollment['course_title']) ?></td>
+                                                    <td>
+                                                        <?php if (!empty($enrollment['enrollment_date'])): ?>
+                                                            <?= date('M d, Y', strtotime($enrollment['enrollment_date'])) ?>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">N/A</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">No recent enrollments found.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

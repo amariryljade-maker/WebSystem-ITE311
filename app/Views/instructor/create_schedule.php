@@ -152,16 +152,16 @@
                         <!-- Date and Time -->
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="start_date" class="form-label fw-semibold">
-                                    Start Date <span class="text-danger">*</span>
+                                <label for="start_time" class="form-label fw-semibold">
+                                    Start Time <span class="text-danger">*</span>
                                 </label>
-                                <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+                                <input type="time" class="form-control" id="start_time" name="start_time" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="end_date" class="form-label fw-semibold">
-                                    End Date <span class="text-danger">*</span>
+                                <label for="end_time" class="form-label fw-semibold">
+                                    End Time <span class="text-danger">*</span>
                                 </label>
-                                <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+                                <input type="time" class="form-control" id="end_time" name="end_time" required>
                             </div>
                         </div>
 

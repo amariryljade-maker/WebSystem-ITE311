@@ -22,7 +22,7 @@
             <!-- Enhanced Progress Summary Cards -->
             <div class="row mb-5">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg animate-fade-in">
+                    <div class="card stats-card shadow-lg animate-fade-in" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">

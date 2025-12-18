@@ -11,7 +11,7 @@
                 <div class="col-12">
                     <div class="card shadow">
                         <div class="card-body">
-                            <h5 class="card-title">Welcome back, <?= esc($user['name']) ?>!</h5>
+                            <h5 class="card-title">Welcome, <?= esc($user['name']) ?>!</h5>
                             <p class="card-text text-muted">Here's an overview of your teaching activities and course management.</p>
                         </div>
                     </div>

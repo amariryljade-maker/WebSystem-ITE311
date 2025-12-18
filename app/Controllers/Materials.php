@@ -27,7 +27,7 @@ class Materials extends BaseController
         }
 
         // Check if user has permission (instructor or admin)
-        if (!has_role(['instructor', 'admin'])) {
+        if (!has_role('instructor') && !has_role('admin')) {
             session()->setFlashdata('error', 'Access denied. Instructor or admin privileges required.');
             return redirect()->to('/dashboard');
         }
@@ -88,9 +88,6 @@ class Materials extends BaseController
                 'overwrite' => false,
                 'remove_spaces' => true,
             ];
-            
-            // Initialize upload library
-            $upload = \Config\Services::upload($config);
             
             // Handle file upload
             $file = $this->request->getFile('material_file');
@@ -162,7 +159,7 @@ class Materials extends BaseController
         }
 
         // Check if user has permission
-        if (!has_role(['instructor', 'admin'])) {
+        if (!has_role('instructor') && !has_role('admin')) {
             session()->setFlashdata('error', 'Access denied. Instructor or admin privileges required.');
             return redirect()->to('/dashboard');
         }
@@ -176,6 +173,11 @@ class Materials extends BaseController
 
         // Get course information to verify ownership
         $course = $this->courseModel->find($material['course_id']);
+        if (!$course) {
+            session()->setFlashdata('error', 'Course not found.');
+            return redirect()->back();
+        }
+
         $userId = get_user_id();
 
         // Check if user is the course instructor or admin
@@ -220,12 +222,17 @@ class Materials extends BaseController
 
         // Get course information to verify enrollment
         $course = $this->courseModel->find($material['course_id']);
+        if (!$course) {
+            session()->setFlashdata('error', 'Course not found.');
+            return redirect()->back();
+        }
+
         $userId = get_user_id();
 
         // Check if user is enrolled in the course or is instructor/admin
         $hasAccess = false;
         
-        if (has_role(['instructor', 'admin'])) {
+        if (has_role('admin') || has_role('instructor')) {
             // Instructors and admins have access if they own the course
             $hasAccess = has_role('admin') || $course['instructor_id'] == $userId;
         } else if (has_role('student')) {

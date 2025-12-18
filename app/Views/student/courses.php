@@ -19,10 +19,50 @@
                 </div>
             </div>
 
+            <!-- Enhanced Course Search Section -->
+            <div class="card card-modern mb-4">
+                <div class="card-body p-4">
+                    <form id="courseSearchForm">
+                        <div class="row g-3">
+                            <!-- Search Input -->
+                            <div class="col-md-6">
+                                <div class="position-relative">
+                                    <input type="text" 
+                                           class="form-control border-0 bg-light" 
+                                           id="courseSearchInput" 
+                                           placeholder="Search your courses..."
+                                           autocomplete="off">
+                                    <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Filter Options -->
+                            <div class="col-md-3">
+                                <select class="form-select border-0 bg-light" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in_progress">In Progress</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <select class="form-select border-0 bg-light" id="sortByFilter">
+                                    <option value="enrolled_desc">Recently Enrolled</option>
+                                    <option value="enrolled_asc">Oldest Enrolled</option>
+                                    <option value="title_asc">Title A-Z</option>
+                                    <option value="title_desc">Title Z-A</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- Course Statistics Cards -->
             <div class="row mb-5">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg">
+                    <div class="card stats-card shadow-lg" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
@@ -103,103 +143,109 @@
             </div>
 
             <!-- Courses Grid -->
-            <?php if (!empty($enrolled_courses)): ?>
-                <div class="row">
-                    <?php foreach ($enrolled_courses as $course): ?>
-                        <div class="col-xl-4 col-lg-6 mb-4">
-                            <div class="card card-modern h-100">
-                                <!-- Course Header -->
-                                <div class="card-header" style="background: var(--primary-gradient); border: none; color: white; padding: 1.5rem;">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <span class="badge badge-modern bg-light text-dark">
-                                                <i class="bi bi-tag me-1"></i><?= esc($course['category'] ?? 'General') ?>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="badge badge-modern bg-success">
-                                                <i class="bi bi-play-circle me-1"></i>Active
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Course Body -->
-                                <div class="card-body p-4">
-                                    <div class="text-center mb-3">
-                                        <i class="bi bi-book gradient-icon" style="font-size: 4rem;"></i>
-                                    </div>
-                                    
-                                    <h5 class="card-title text-center mb-3 fw-bold">
-                                        <?= esc($course['title']) ?>
-                                    </h5>
-                                    
-                                    <p class="card-text text-muted text-center mb-4">
-                                        <?= substr(strip_tags($course['description'] ?? ''), 0, 100) . (strlen(strip_tags($course['description'] ?? '')) > 100 ? '...' : '') ?>
-                                    </p>
-                                    
-                                    <!-- Course Info -->
-                                    <div class="row text-center mb-4">
-                                        <div class="col-6">
-                                            <small class="text-muted">Instructor</small>
-                                            <div class="fw-bold"><?= esc($course['instructor_name'] ?? 'N/A') ?></div>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted">Duration</small>
-                                            <div class="fw-bold"><?= esc($course['duration'] ?? 'N/A') ?></div>
+            <div id="coursesContainer">
+                <?php if (!empty($enrolled_courses)): ?>
+                    <div class="row" id="coursesGrid">
+                        <?php foreach ($enrolled_courses as $course): ?>
+                            <div class="col-xl-4 col-lg-6 mb-4 course-item" 
+                                 data-title="<?= esc(strtolower($course['title'])) ?>"
+                                 data-category="<?= esc(strtolower($course['category'] ?? 'general')) ?>"
+                                 data-instructor="<?= esc(strtolower($course['instructor_name'] ?? '')) ?>"
+                                 data-status="active">
+                                <div class="card card-modern h-100">
+                                    <!-- Course Header -->
+                                    <div class="card-header" style="background: var(--primary-gradient); border: none; color: white; padding: 1.5rem;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-modern bg-light text-dark">
+                                                    <i class="bi bi-tag me-1"></i><?= esc($course['category'] ?? 'General') ?>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="badge badge-modern bg-success">
+                                                    <i class="bi bi-play-circle me-1"></i>Active
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     
-                                    <!-- Action Buttons -->
-                                    <div class="d-grid gap-2">
-                                        <a href="<?= site_url('student/course_materials/' . $course['id']) ?>" 
-                                           class="btn btn-modern btn-outline-primary">
-                                            <i class="bi bi-journal-text me-2"></i>View Materials
-                                        </a>
-                                        <div class="btn-group" role="group">
-                                            <a href="<?= site_url('student/view_course/' . $course['id']) ?>" 
-                                               class="btn btn-modern btn-outline-info flex-fill">
-                                                <i class="bi bi-eye me-1"></i>View
+                                    <!-- Course Body -->
+                                    <div class="card-body p-4">
+                                        <div class="text-center mb-3">
+                                            <i class="bi bi-book gradient-icon" style="font-size: 4rem;"></i>
+                                        </div>
+                                        
+                                        <h5 class="card-title text-center mb-3 fw-bold">
+                                            <?= esc($course['title']) ?>
+                                        </h5>
+                                        
+                                        <p class="card-text text-muted text-center mb-4">
+                                            <?= substr(strip_tags($course['description'] ?? ''), 0, 100) . (strlen(strip_tags($course['description'] ?? '')) > 100 ? '...' : '') ?>
+                                        </p>
+                                        
+                                        <!-- Course Info -->
+                                        <div class="row text-center mb-4">
+                                            <div class="col-6">
+                                                <small class="text-muted">Instructor</small>
+                                                <div class="fw-bold"><?= esc($course['instructor_name'] ?? 'N/A') ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Duration</small>
+                                                <div class="fw-bold"><?= esc($course['duration'] ?? 'N/A') ?></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Action Buttons -->
+                                        <div class="d-grid gap-2">
+                                            <a href="<?= site_url('student/courses/' . $course['course_id'] . '/materials') ?>" 
+                                               class="btn btn-modern btn-outline-primary">
+                                                <i class="bi bi-journal-text me-2"></i>View Materials
                                             </a>
-                                            <a href="<?= site_url('student/assignments/' . $course['id']) ?>" 
-                                               class="btn btn-modern btn-outline-success flex-fill">
-                                                <i class="bi bi-file-earmark-text me-1"></i>Assignments
-                                            </a>
+                                            <div class="btn-group" role="group">
+                                                <a href="<?= site_url('student/courses/view/' . $course['course_id']) ?>" 
+                                                   class="btn btn-modern btn-outline-info flex-fill">
+                                                    <i class="bi bi-eye me-1"></i>View
+                                                </a>
+                                                <a href="<?= site_url('student/assignments/' . $course['id']) ?>" 
+                                                   class="btn btn-modern btn-outline-success flex-fill">
+                                                    <i class="bi bi-file-earmark-text me-1"></i>Assignments
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Course Footer -->
-                                <div class="card-footer bg-light border-0">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar3 me-1"></i>
-                                        Enrolled: <?= date('M d, Y', strtotime($course['enrolled_at'] ?? 'now')) ?>
-                                    </small>
+                                    
+                                    <!-- Course Footer -->
+                                    <div class="card-footer bg-light border-0">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            Enrolled: <?= date('M d, Y', strtotime($course['enrolled_at'] ?? 'now')) ?>
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <!-- No Courses State -->
+                    <div class="text-center py-5" id="noCoursesMessage">
+                        <div class="mb-4">
+                            <i class="bi bi-book gradient-icon" style="font-size: 6rem;"></i>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php else: ?>
-                <!-- No Courses State -->
-                <div class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="bi bi-book gradient-icon" style="font-size: 6rem;"></i>
+                        <h3 class="text-gray-600 mb-3">No Courses Found</h3>
+                        <p class="text-gray-500 mb-4 fs-5">
+                            No courses match your search criteria.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-modern btn-secondary btn-lg" id="clearSearchBtn">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Clear Search
+                            </button>
+                            <a href="<?= site_url('student/enroll_courses') ?>" class="btn btn-modern btn-primary btn-lg">
+                                <i class="bi bi-plus-circle me-2"></i>Browse Courses
+                            </a>
+                        </div>
                     </div>
-                    <h3 class="text-gray-600 mb-3">No Courses Yet</h3>
-                    <p class="text-gray-500 mb-4 fs-5">
-                        Start your learning journey by enrolling in your first course.
-                    </p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="<?= site_url('student/enroll_courses') ?>" class="btn btn-modern btn-primary btn-lg">
-                            <i class="bi bi-plus-circle me-2"></i>Browse Courses
-                        </a>
-                        <a href="<?= site_url('student/dashboard') ?>" class="btn btn-modern btn-secondary btn-lg">
-                            <i class="bi bi-house me-2"></i>Back to Dashboard
-                        </a>
-                    </div>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>
@@ -208,6 +254,9 @@
 <?= $this->section('scripts') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Course search and filtering functionality
+    initCourseSearch();
+    
     // Auto-hide flash messages after 5 seconds
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
@@ -243,6 +292,130 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.transform = 'translateY(0)';
         });
     });
+
+    function initCourseSearch() {
+        const searchInput = document.getElementById('courseSearchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const sortByFilter = document.getElementById('sortByFilter');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const courseItems = document.querySelectorAll('.course-item');
+        
+        if (!searchInput || !courseItems.length) return;
+
+        // Real-time search
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterCourses();
+            }, 300);
+        });
+
+        // Filter changes
+        statusFilter.addEventListener('change', filterCourses);
+        sortByFilter.addEventListener('change', filterCourses);
+
+        // Clear search
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                statusFilter.value = '';
+                sortByFilter.value = 'enrolled_desc';
+                filterCourses();
+            });
+        }
+
+        function filterCourses() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value.toLowerCase();
+            const sortBy = sortByFilter.value;
+            
+            let visibleCount = 0;
+            const filteredItems = [];
+
+            courseItems.forEach(function(item) {
+                const title = item.dataset.title || '';
+                const category = item.dataset.category || '';
+                const instructor = item.dataset.instructor || '';
+                const status = item.dataset.status || '';
+                
+                // Search filter
+                const matchesSearch = searchTerm === '' || 
+                    title.includes(searchTerm) || 
+                    category.includes(searchTerm) || 
+                    instructor.includes(searchTerm);
+                
+                // Status filter
+                const matchesStatus = statusValue === '' || status === statusValue;
+                
+                // Apply filters
+                if (matchesSearch && matchesStatus) {
+                    item.style.display = '';
+                    filteredItems.push(item);
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Sort courses
+            sortCourses(filteredItems, sortBy);
+            
+            // Show/hide no results message
+            const noCoursesMessage = document.getElementById('noCoursesMessage');
+            const coursesGrid = document.getElementById('coursesGrid');
+            
+            if (visibleCount === 0) {
+                if (noCoursesMessage) noCoursesMessage.style.display = 'block';
+                if (coursesGrid) coursesGrid.style.display = 'none';
+            } else {
+                if (noCoursesMessage) noCoursesMessage.style.display = 'none';
+                if (coursesGrid) coursesGrid.style.display = 'flex';
+            }
+        }
+
+        function sortCourses(items, sortBy) {
+            const container = document.getElementById('coursesGrid');
+            if (!container) return;
+
+            const sortedItems = Array.from(items).sort(function(a, b) {
+                switch(sortBy) {
+                    case 'enrolled_asc':
+                        return getEnrolledDate(a) - getEnrolledDate(b);
+                    case 'enrolled_desc':
+                        return getEnrolledDate(b) - getEnrolledDate(a);
+                    case 'title_asc':
+                        return getTitle(a).localeCompare(getTitle(b));
+                    case 'title_desc':
+                        return getTitle(b).localeCompare(getTitle(a));
+                    default:
+                        return 0;
+                }
+            });
+
+            // Reorder DOM elements
+            sortedItems.forEach(function(item) {
+                container.appendChild(item);
+            });
+        }
+
+        function getEnrolledDate(item) {
+            const footer = item.querySelector('.card-footer small');
+            if (footer) {
+                const text = footer.textContent;
+                const dateMatch = text.match(/Enrolled: (\w{3} \d{2}, \d{4})/);
+                if (dateMatch) {
+                    return new Date(dateMatch[1]);
+                }
+            }
+            return new Date(0);
+        }
+
+        function getTitle(item) {
+            const titleElement = item.querySelector('.card-title');
+            return titleElement ? titleElement.textContent.trim() : '';
+        }
+    }
 });
 </script>
 <?= $this->endSection() ?>
@@ -321,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     </div>
                                                 </div>
                                                 <div class="card-footer">
-                                                    <a href="<?= site_url('/student/courses/view/' . $course['id']) ?>" class="btn btn-primary btn-sm">View Course</a>
+                                                    <a href="<?= site_url('/student/courses/view/' . $course['course_id']) ?>" class="btn btn-primary btn-sm">View Course</a>
                                                 </div>
                                             </div>
                                         </div>

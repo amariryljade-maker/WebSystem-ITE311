@@ -63,7 +63,7 @@ class Course extends BaseController
             // Database connection
             $conn = new \mysqli('localhost', 'root', '', 'lms_amar');
             if ($conn->connect_error) {
-                throw new Exception('Database connection failed');
+                throw new \Exception('Database connection failed');
             }
 
             // Check if course exists
@@ -139,24 +139,47 @@ class Course extends BaseController
         try {
             // Simple database query without complex operations
             $conn = new \mysqli('localhost', 'root', '', 'lms_amar');
-            
+
             if ($conn->connect_error) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Database connection failed'
                 ]);
             }
-            
-            // Get all published courses
-            $result = $conn->query("SELECT * FROM courses WHERE is_published = 1");
+
+            $userId = null;
+            $userRole = null;
+
+            if (function_exists('is_user_logged_in') && is_user_logged_in()) {
+                $userId = get_user_id();
+                $userRole = get_user_role();
+            }
+
+            // If a student is logged in, only return courses they are not enrolled in
+            if ($userId && $userRole === 'student') {
+                $stmt = $conn->prepare(
+                    "SELECT c.*
+                     FROM courses c
+                     LEFT JOIN enrollments e
+                       ON e.course_id = c.id AND e.user_id = ?
+                     WHERE c.is_published = 1
+                       AND e.id IS NULL"
+                );
+                $stmt->bind_param('i', $userId);
+                $stmt->execute();
+                $result = $stmt->get_result();
+            } else {
+                // For guests or non-student roles, show all published courses
+                $result = $conn->query("SELECT * FROM courses WHERE is_published = 1");
+            }
+
             $courses = [];
-            
             while ($row = $result->fetch_assoc()) {
                 $courses[] = $row;
             }
-            
+
             $conn->close();
-            
+
             return $this->response->setJSON([
                 'success' => true,
                 'courses' => $courses
@@ -256,6 +279,117 @@ class Course extends BaseController
     }
 
     /**
+     * Search courses (AJAX endpoint)
+     */
+    public function search()
+    {
+        try {
+            // Get search parameters
+            $keyword = $this->request->getGet('q') ?? '';
+            $category = $this->request->getGet('category') ?? '';
+            $level = $this->request->getGet('level') ?? '';
+            $limit = $this->request->getGet('limit') ?? 10;
+            $offset = $this->request->getGet('offset') ?? 0;
+
+            // Search courses using model
+            $courses = $this->courseModel->searchCoursesAdvanced($keyword, $category, $level, $limit, $offset);
+            $totalCount = $this->courseModel->countSearchResults($keyword, $category, $level);
+
+            // Format courses for JSON response
+            $formattedCourses = [];
+            foreach ($courses as $course) {
+                $formattedCourses[] = [
+                    'id' => $course['id'],
+                    'title' => esc($course['title']),
+                    'description' => esc($course['description']),
+                    'short_description' => esc($course['short_description'] ?? ''),
+                    'category' => esc($course['category'] ?? 'General'),
+                    'level' => esc($course['level'] ?? 'Beginner'),
+                    'instructor_name' => esc($course['instructor_name'] ?? 'N/A'),
+                    'duration' => esc($course['duration'] ?? 'N/A'),
+                    'rating' => floatval($course['rating'] ?? 0),
+                    'total_ratings' => intval($course['total_ratings'] ?? 0),
+                    'price' => floatval($course['price'] ?? 0),
+                    'thumbnail' => $course['thumbnail'] ?? null,
+                    'is_featured' => (bool)($course['is_featured'] ?? false),
+                    'created_at' => $course['created_at']
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'courses' => $formattedCourses,
+                'total_count' => $totalCount,
+                'limit' => $limit,
+                'offset' => $offset,
+                'has_more' => ($offset + $limit) < $totalCount
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Search error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get course suggestions for autocomplete (AJAX endpoint)
+     */
+    public function getSuggestions()
+    {
+        try {
+            $keyword = $this->request->getGet('q') ?? '';
+            $limit = $this->request->getGet('limit') ?? 5;
+
+            if (strlen($keyword) < 2) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'suggestions' => []
+                ]);
+            }
+
+            $suggestions = $this->courseModel->getCourseSuggestions($keyword, $limit);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'suggestions' => $suggestions
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Suggestion error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get search filters (AJAX endpoint)
+     */
+    public function getFilters()
+    {
+        try {
+            $categories = $this->courseModel->getAvailableCategories();
+            $levels = $this->courseModel->getAvailableLevels();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'filters' => [
+                    'categories' => $categories,
+                    'levels' => $levels
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Filter error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Display course details
      */
     public function show($id)
@@ -285,7 +419,7 @@ class Course extends BaseController
     }
 
     /**
-     * List all courses
+     * List all courses with search functionality
      */
     public function index()
     {
@@ -297,10 +431,39 @@ class Course extends BaseController
         $userId = get_user_id();
         $userRole = get_user_role();
 
+        // Get search parameters
+        $keyword = $this->request->getGet('q') ?? '';
+        $category = $this->request->getGet('category') ?? '';
+        $level = $this->request->getGet('level') ?? '';
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = 12;
+
+        // Get courses
+        if (!empty($keyword) || !empty($category) || !empty($level)) {
+            $courses = $this->courseModel->searchCoursesAdvanced($keyword, $category, $level, $perPage, ($page - 1) * $perPage);
+            $totalCount = $this->courseModel->countSearchResults($keyword, $category, $level);
+        } else {
+            $courses = $this->courseModel->where('is_published', 1)->findAll($perPage, ($page - 1) * $perPage);
+            $totalCount = $this->courseModel->where('is_published', 1)->countAllResults();
+        }
+
+        // Get filters
+        $categories = $this->courseModel->getAvailableCategories();
+        $levels = $this->courseModel->getAvailableLevels();
+
         $data = [
             'title' => 'Courses',
-            'courses' => $this->courseModel->where('is_published', 1)->findAll(),
-            'user_role' => $userRole
+            'courses' => $courses,
+            'user_role' => $userRole,
+            'keyword' => $keyword,
+            'category' => $category,
+            'level' => $level,
+            'categories' => $categories,
+            'levels' => $levels,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $totalCount,
+            'total_pages' => ceil($totalCount / $perPage)
         ];
 
         return view('course/index', $data);

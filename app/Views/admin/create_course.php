@@ -38,6 +38,17 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="mb-3">
+                                    <label for="control_number" class="form-label">Control Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="control_number" name="control_number" 
+                                           placeholder="e.g., CN-2024-001, CTRL-12345" required>
+                                    <div class="form-text">Enter a unique control number for administrative tracking</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
                                     <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
                                 </div>
@@ -45,7 +56,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label for="instructor_id" class="form-label">Instructor</label>
                                     <select class="form-select" id="instructor_id" name="instructor_id" required>
@@ -58,26 +69,21 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="duration" class="form-label">Course Time</label>
-                                    <input type="text" class="form-control" id="duration" name="duration" placeholder="e.g., 10:00 AM">
-                                    <div class="form-text">Enter course time</div>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="start_date" class="form-label">Start Date</label>
-                                    <input type="date" class="form-control" id="start_date" name="start_date">
+                                    <label for="start_date" class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" id="start_date" name="start_date">
+                                    <div class="form-text">Course start time (e.g., 09:00)</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="end_date" class="form-label">End Date</label>
-                                    <input type="date" class="form-control" id="end_date" name="end_date">
+                                    <label for="end_date" class="form-label">End Time</label>
+                                    <input type="time" class="form-control" id="end_date" name="end_date">
+                                    <div class="form-text">Course end time (e.g., 10:30)</div>
                                 </div>
                             </div>
                         </div>
@@ -86,8 +92,17 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="schedule" class="form-label">Schedule</label>
-                                    <input type="text" class="form-control" id="schedule" name="schedule" placeholder="e.g., Mon-Wed-Fri 10:00 AM">
-                                    <div class="form-text">Class meeting days and times</div>
+                                    <select class="form-select" id="schedule" name="schedule">
+                                        <option value="">Select Schedule</option>
+                                        <option value="Mon-Wed-Fri">Monday, Wednesday, Friday</option>
+                                        <option value="Tue-Thu">Tuesday, Thursday</option>
+                                        <option value="Mon-Tue-Wed-Thu-Fri">Monday to Friday</option>
+                                        <option value="Sat-Sun">Saturday, Sunday</option>
+                                        <option value="Weekdays">Weekdays</option>
+                                        <option value="Weekends">Weekends</option>
+                                        <option value="Custom">Custom</option>
+                                    </select>
+                                    <div class="form-text">Select class meeting days</div>
                                 </div>
                             </div>
                             <div class="col-md-6">

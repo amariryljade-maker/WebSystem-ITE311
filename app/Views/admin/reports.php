@@ -30,19 +30,19 @@
             <!-- System Statistics -->
             <div class="row mb-5">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg">
+                    <div class="card stats-card bg-light text-secondary shadow-lg">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-uppercase mb-1 opacity-75">
                                         Daily Active Users
                                     </div>
-                                    <div class="h1 mb-0 font-weight-bold">
-                                        245
+                                    <div class="h1 mb-0 font-weight-bold text-secondary">
+                                        <?= $daily_active_users ?>
                                     </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="bi bi-people fa-2x opacity-75"></i>
+                                    <i class="bi bi-people fa-2x text-secondary opacity-75"></i>
                                 </div>
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                                         Weekly Logins
                                     </div>
                                     <div class="h1 mb-0 font-weight-bold">
-                                        1,847
+                                        <?= number_format($weekly_logins) ?>
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -78,7 +78,7 @@
                                         Course Completions
                                     </div>
                                     <div class="h1 mb-0 font-weight-bold">
-                                        89
+                                        <?= $course_completions ?>
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -98,7 +98,7 @@
                                         Pending Tasks
                                     </div>
                                     <div class="h1 mb-0 font-weight-bold">
-                                        23
+                                        <?= $pending_tasks ?>
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -129,15 +129,15 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted">Total Users</small>
-                                    <span class="badge badge-modern bg-primary">1,234</span>
+                                    <span class="badge badge-modern bg-primary"><?= number_format($total_users) ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted">Active Today</small>
-                                    <span class="badge badge-modern bg-success">245</span>
+                                    <span class="badge badge-modern bg-success"><?= $daily_active_users ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">New This Week</small>
-                                    <span class="badge badge-modern bg-info">18</span>
+                                    <span class="badge badge-modern bg-info"><?= $new_users_this_week ?></span>
                                 </div>
                             </div>
                             <a href="<?= site_url('admin/reports/users') ?>" class="btn btn-modern btn-primary btn-lg w-100">
@@ -164,15 +164,15 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted">Total Courses</small>
-                                    <span class="badge badge-modern bg-success">45</span>
+                                    <span class="badge badge-modern bg-success"><?= $total_courses ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted">Active Enrollments</small>
-                                    <span class="badge badge-modern bg-info">892</span>
+                                    <span class="badge badge-modern bg-info"><?= number_format($total_enrollments) ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-muted">Completion Rate</small>
-                                    <span class="badge badge-modern bg-warning">87%</span>
+                                    <span class="badge badge-modern bg-warning"><?= $total_enrollments > 0 ? round(($course_completions / $total_enrollments) * 100) : 0 ?>%</span>
                                 </div>
                             </div>
                             <a href="<?= site_url('admin/reports/courses') ?>" class="btn btn-modern btn-success btn-lg w-100">
@@ -199,7 +199,7 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted">Daily Logins</small>
-                                    <span class="badge badge-modern bg-info">1,847</span>
+                                    <span class="badge badge-modern bg-info"><?= number_format($weekly_logins) ?></span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted">Avg Session</small>
@@ -232,7 +232,7 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                     <div>
                                         <h6 class="mb-1 fw-bold">Monthly User Activity Report</h6>
-                                        <small class="text-muted">Generated on <?= date('M d, Y') ?> • 1,234 users analyzed</small>
+                                        <small class="text-muted">Generated on <?= date('M d, Y') ?> • <?= number_format($total_users) ?> users analyzed</small>
                                     </div>
                                     <div>
                                         <button class="btn btn-modern btn-outline-primary btn-sm me-2" onclick="downloadReport('user_activity_monthly')">
@@ -246,7 +246,7 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                     <div>
                                         <h6 class="mb-1 fw-bold">Course Performance Q4 2024</h6>
-                                        <small class="text-muted">Generated on <?= date('M d, Y', strtotime('-2 days')) ?> • 45 courses analyzed</small>
+                                        <small class="text-muted">Generated on <?= date('M d, Y', strtotime('-2 days')) ?> • <?= $total_courses ?> courses analyzed</small>
                                     </div>
                                     <div>
                                         <button class="btn btn-modern btn-outline-primary btn-sm me-2" onclick="downloadReport('course_performance_q4')">
@@ -260,7 +260,7 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                     <div>
                                         <h6 class="mb-1 fw-bold">Enrollment Trends Analysis</h6>
-                                        <small class="text-muted">Generated on <?= date('M d, Y', strtotime('-1 week')) ?> • 892 enrollments tracked</small>
+                                        <small class="text-muted">Generated on <?= date('M d, Y', strtotime('-1 week')) ?> • <?= number_format($total_enrollments) ?> enrollments tracked</small>
                                     </div>
                                     <div>
                                         <button class="btn btn-modern btn-outline-primary btn-sm me-2" onclick="downloadReport('enrollment_trends')">

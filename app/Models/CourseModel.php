@@ -21,33 +21,14 @@ class CourseModel extends Model
      */
     public function getTeacherCourses($teacherId, $limit = null, $offset = 0)
     {
-        // Return mock data since courses table might not exist yet
-        $mockCourses = [
-            [
-                'id' => 1,
-                'title' => 'Web Development Fundamentals',
-                'description' => 'Learn the basics of HTML, CSS, and JavaScript to build modern web applications.',
-                'instructor_id' => $teacherId,
-                'category' => 'Web Development',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-30 days'))
-            ],
-            [
-                'id' => 2,
-                'title' => 'Advanced JavaScript',
-                'description' => 'Deep dive into advanced JavaScript concepts including ES6+, async programming, and frameworks.',
-                'instructor_id' => $teacherId,
-                'category' => 'Programming',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-20 days'))
-            ]
-        ];
+        $builder = $this->where('instructor_id', $teacherId)
+                       ->orderBy('created_at', 'DESC');
 
         if ($limit) {
-            return array_slice($mockCourses, $offset, $limit);
+            return $builder->findAll($limit, $offset);
         }
 
-        return $mockCourses;
+        return $builder->findAll();
     }
 
     /**
@@ -55,7 +36,7 @@ class CourseModel extends Model
      */
     public function getTeacherCourseCount($teacherId)
     {
-        return 2; // Mock count for teacher
+        return $this->where('instructor_id', $teacherId)->countAllResults();
     }
 
     /**
@@ -63,8 +44,7 @@ class CourseModel extends Model
      */
     public function getTeacherRecentCourses($teacherId, $limit = 5)
     {
-        $courses = $this->getTeacherCourses($teacherId);
-        return array_slice($courses, 0, $limit);
+        return $this->getTeacherCourses($teacherId, $limit, 0);
     }
 
     /**
@@ -82,59 +62,18 @@ class CourseModel extends Model
      */
     public function getPublishedCourses($limit = null, $offset = 0)
     {
-        // Return mock data since courses table might not exist yet
-        $mockCourses = [
-            [
-                'id' => 1,
-                'title' => 'Web Development Fundamentals',
-                'description' => 'Learn the basics of HTML, CSS, and JavaScript to build modern web applications.',
-                'instructor_id' => 1,
-                'instructor_name' => 'John Smith',
-                'thumbnail' => null,
-                'category' => 'Web Development',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-30 days'))
-            ],
-            [
-                'id' => 2,
-                'title' => 'Database Management',
-                'description' => 'Master database design, SQL queries, and data management principles.',
-                'instructor_id' => 2,
-                'instructor_name' => 'Jane Doe',
-                'thumbnail' => null,
-                'category' => 'Database',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-25 days'))
-            ],
-            [
-                'id' => 3,
-                'title' => 'Advanced JavaScript',
-                'description' => 'Deep dive into advanced JavaScript concepts including ES6+, async programming, and frameworks.',
-                'instructor_id' => 1,
-                'instructor_name' => 'John Smith',
-                'thumbnail' => null,
-                'category' => 'Programming',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-20 days'))
-            ],
-            [
-                'id' => 4,
-                'title' => 'Python Programming',
-                'description' => 'Learn Python from scratch and build real-world applications.',
-                'instructor_id' => 3,
-                'instructor_name' => 'Mike Johnson',
-                'thumbnail' => null,
-                'category' => 'Programming',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-15 days'))
-            ]
-        ];
+        // Join users table to get instructor display name.
+        // The current users schema uses a single `name` column (see CreateUsersTableFinal migration),
+        // so we select users.name as instructor_name.
+        $builder = $this->select('courses.*, users.name AS instructor_name')
+                       ->join('users', 'users.id = courses.instructor_id', 'left')
+                       ->orderBy('courses.created_at', 'DESC');
 
         if ($limit) {
-            return array_slice($mockCourses, $offset, $limit);
+            return $builder->findAll($limit, $offset);
         }
 
-        return $mockCourses;
+        return $builder->findAll();
     }
 
     /**
@@ -154,20 +93,193 @@ class CourseModel extends Model
     }
 
     /**
-     * Search courses
+     * Advanced search courses with multiple filters
      */
-    public function searchCourses($keyword, $limit = null)
+    public function searchCoursesAdvanced($keyword = '', $category = '', $level = '', $limit = null, $offset = 0)
     {
-        $builder = $this->groupStart()
+        $builder = $this->where('is_published', 1);
+
+        // Apply keyword search
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                   ->like('title', $keyword)
+                   ->orLike('description', $keyword)
+                   ->orLike('short_description', $keyword)
+                   ->groupEnd();
+        }
+
+        // Apply category filter
+        if (!empty($category)) {
+            $builder->where('category', $category);
+        }
+
+        // Apply level filter
+        if (!empty($level)) {
+            $builder->where('level', $level);
+        }
+
+        $builder->orderBy('created_at', 'DESC');
+
+        if ($limit) {
+            return $builder->findAll($limit, $offset);
+        }
+
+        return $builder->findAll($offset);
+    }
+
+    /**
+     * Count search results
+     */
+    public function countSearchResults($keyword = '', $category = '', $level = '')
+    {
+        $builder = $this->where('is_published', 1);
+
+        // Apply keyword search
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                   ->like('title', $keyword)
+                   ->orLike('description', $keyword)
+                   ->orLike('short_description', $keyword)
+                   ->groupEnd();
+        }
+
+        // Apply category filter
+        if (!empty($category)) {
+            $builder->where('category', $category);
+        }
+
+        // Apply level filter
+        if (!empty($level)) {
+            $builder->where('level', $level);
+        }
+
+        return $builder->countAllResults();
+    }
+
+    /**
+     * Get course suggestions for autocomplete
+     */
+    public function getCourseSuggestions($keyword, $limit = 5)
+    {
+        $builder = $this->where('is_published', 1)
+                       ->groupStart()
                        ->like('title', $keyword)
                        ->orLike('description', $keyword)
                        ->groupEnd()
+                       ->orderBy('created_at', 'DESC')
+                       ->limit($limit);
+
+        $courses = $builder->findAll();
+        
+        $suggestions = [];
+        foreach ($courses as $course) {
+            $suggestions[] = [
+                'id' => $course['id'],
+                'title' => $course['title'],
+                'category' => $course['category'] ?? 'General',
+                'highlight' => $this->highlightSearchTerm($course['title'], $keyword)
+            ];
+        }
+        
+        return $suggestions;
+    }
+
+    /**
+     * Get available categories
+     */
+    public function getAvailableCategories()
+    {
+        // Return mock categories since courses table might not exist yet
+        return [
+            'Web Development',
+            'Programming',
+            'Database',
+            'Mobile Development',
+            'Data Science',
+            'Design',
+            'Business',
+            'Marketing'
+        ];
+    }
+
+    /**
+     * Get available levels
+     */
+    public function getAvailableLevels()
+    {
+        return [
+            'Beginner',
+            'Intermediate',
+            'Advanced',
+            'Expert'
+        ];
+    }
+
+    /**
+     * Highlight search term in text
+     */
+    private function highlightSearchTerm($text, $keyword)
+    {
+        if (empty($keyword)) {
+            return $text;
+        }
+        
+        $pattern = '/(' . preg_quote($keyword, '/') . ')/i';
+        return preg_replace($pattern, '<mark>$1</mark>', $text);
+    }
+
+    /**
+     * Get featured courses
+     */
+    public function getFeaturedCourses($limit = 6)
+    {
+        $courses = $this->getPublishedCourses($limit);
+        
+        // Mark some courses as featured for demonstration
+        foreach ($courses as &$course) {
+            $course['is_featured'] = in_array($course['id'], [1, 3]); // Mock featured courses
+        }
+        
+        return $courses;
+    }
+
+    /**
+     * Get courses by instructor
+     */
+    public function getCoursesByInstructor($instructorId, $limit = null)
+    {
+        $builder = $this->where('instructor_id', $instructorId)
                        ->where('is_published', 1)
                        ->orderBy('created_at', 'DESC');
 
         if ($limit) {
             return $builder->findAll($limit);
         }
+
+        return $builder->findAll();
+    }
+
+    /**
+     * Get related courses
+     */
+    public function getRelatedCourses($courseId, $limit = 4)
+    {
+        $course = $this->find($courseId);
+        if (!$course) {
+            return [];
+        }
+
+        $builder = $this->where('is_published', 1)
+                       ->where('id !=', $courseId)
+                       ->groupStart()
+                       ->where('category', $course['category'])
+                       ->orGroupStart()
+                       ->like('title', $course['title'])
+                       ->orLike('description', $course['description'])
+                       ->groupEnd()
+                       ->groupEnd()
+                       ->orderBy('created_at', 'DESC')
+                       ->limit($limit);
 
         return $builder->findAll();
     }
@@ -273,27 +385,7 @@ class CourseModel extends Model
      */
     public function getInstructorCourses($instructorId)
     {
-        // Return mock data since courses table might not exist yet
-        return [
-            [
-                'id' => 1,
-                'title' => 'Web Development Fundamentals',
-                'description' => 'Learn the basics of HTML, CSS, and JavaScript to build modern web applications.',
-                'instructor_id' => $instructorId,
-                'category' => 'Web Development',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-30 days'))
-            ],
-            [
-                'id' => 2,
-                'title' => 'Advanced JavaScript',
-                'description' => 'Deep dive into advanced JavaScript concepts including ES6+, async programming, and frameworks.',
-                'instructor_id' => $instructorId,
-                'category' => 'Programming',
-                'is_published' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime('-20 days'))
-            ]
-        ];
+        return $this->getTeacherCourses($instructorId);
     }
 
     /**
@@ -301,7 +393,7 @@ class CourseModel extends Model
      */
     public function getInstructorCourseCount($instructorId)
     {
-        return 2; // Mock count
+        return $this->getTeacherCourseCount($instructorId);
     }
 
     /**
@@ -309,8 +401,7 @@ class CourseModel extends Model
      */
     public function getInstructorRecentCourses($instructorId, $limit = 5)
     {
-        $courses = $this->getInstructorCourses($instructorId);
-        return array_slice($courses, 0, $limit);
+        return $this->getTeacherRecentCourses($instructorId, $limit);
     }
 
     /**
@@ -318,12 +409,6 @@ class CourseModel extends Model
      */
     public function getInstructorCourse($courseId, $instructorId)
     {
-        $courses = $this->getInstructorCourses($instructorId);
-        foreach ($courses as $course) {
-            if ($course['id'] == $courseId) {
-                return $course;
-            }
-        }
-        return null;
+        return $this->getTeacherCourse($courseId, $instructorId);
     }
 }

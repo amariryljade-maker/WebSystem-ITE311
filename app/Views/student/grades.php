@@ -1,3 +1,28 @@
+<?php
+
+// Helper function to convert percentage to Philippine grading system
+function getPhilippineGrade($percentage) {
+    if ($percentage >= 97) return '1.00';
+    if ($percentage >= 94) return '1.25';
+    if ($percentage >= 91) return '1.50';
+    if ($percentage >= 88) return '1.75';
+    if ($percentage >= 85) return '2.00';
+    if ($percentage >= 82) return '2.25';
+    if ($percentage >= 79) return '2.50';
+    if ($percentage >= 76) return '2.75';
+    if ($percentage >= 75) return '3.00';
+    if ($percentage >= 72) return '3.25';
+    if ($percentage >= 69) return '3.50';
+    if ($percentage >= 66) return '3.75';
+    if ($percentage >= 63) return '4.00';
+    if ($percentage >= 60) return '4.25';
+    if ($percentage >= 57) return '4.50';
+    if ($percentage >= 54) return '4.75';
+    return '5.00';
+}
+
+?>
+
 <?= $this->extend('template') ?>
 
 <?= $this->section('content') ?>
@@ -22,7 +47,7 @@
             <!-- Enhanced Grade Summary Cards -->
             <div class="row mb-5">
                 <div class="col-xl-4 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg animate-fade-in">
+                    <div class="card stats-card shadow-lg animate-fade-in" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
@@ -30,7 +55,7 @@
                                         Overall Grade
                                     </div>
                                     <div class="h1 mb-0 font-weight-bold">
-                                        <?= $overall_grade['grade'] ?? 'N/A' ?>
+                                        <?= getPhilippineGrade($overall_grade['percentage'] ?? 0) ?>
                                     </div>
                                     <div class="text-xs opacity-75">
                                         <?= $overall_grade['percentage'] ?? '0' ?>%

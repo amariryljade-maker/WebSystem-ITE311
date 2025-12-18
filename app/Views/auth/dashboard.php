@@ -7,7 +7,7 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8">
-                <h1 class="h3 mb-2">Welcome back, <?= esc($user['name']) ?>!</h1>
+                <h1 class="h3 mb-2">Welcome, <?= esc($user['name']) ?>!</h1>
                 <p class="mb-0 opacity-75">
                     <i class="bi bi-person-badge me-2"></i>
                     Role: <span class="badge bg-light text-primary"><?= ucfirst($user['role']) ?></span>

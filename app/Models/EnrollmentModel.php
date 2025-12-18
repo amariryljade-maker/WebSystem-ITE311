@@ -71,35 +71,62 @@ class EnrollmentModel extends Model
     protected $afterDelete = [];
 
     /**
+     * Check if user is already enrolled in a course
+     */
+    public function isAlreadyEnrolled($user_id, $course_id)
+    {
+        return $this->where('user_id', $user_id)
+                   ->where('course_id', $course_id)
+                   ->first() !== null;
+    }
+
+    /**
      * Enroll a user in a course
      */
     public function enrollUser($data)
     {
-        // Check if already enrolled
-        if ($this->isAlreadyEnrolled($data['user_id'], $data['course_id'])) {
-            return false;
-        }
-
-        // Set default enrollment date if not provided
-        if (!isset($data['enrollment_date'])) {
-            $data['enrollment_date'] = date('Y-m-d H:i:s');
-        }
-
-        // Set default status if not provided
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
-        }
-
         try {
-            return $this->insert($data);
-        } catch (\Exception $e) {
-            log_message('error', 'Enrollment failed: ' . $e->getMessage());
+            // Log the enrollment attempt
+            log_message('info', 'Enrollment attempt: ' . json_encode($data));
+            
+            // Check if user is already enrolled
+            if (isset($data['user_id']) && isset($data['course_id'])) {
+                $existing = $this->isAlreadyEnrolled($data['user_id'], $data['course_id']);
+                log_message('info', 'Check existing enrollment for user ' . $data['user_id'] . ' in course ' . $data['course_id'] . ': ' . ($existing ? 'YES' : 'NO'));
+                
+                if ($existing) {
+                    return 'duplicate';
+                }
+            }
+
+            // Set enrollment date if not provided
+            if (!isset($data['enrollment_date'])) {
+                $data['enrollment_date'] = date('Y-m-d H:i:s');
+            }
+
+            // Set default status if not provided
+            if (!isset($data['status'])) {
+                $data['status'] = 'active';
+            }
+
+            log_message('info', 'Attempting to insert enrollment data: ' . json_encode($data));
+            
+            $result = $this->insert($data);
+            log_message('info', 'Insert result: ' . ($result ? 'SUCCESS' : 'FAILED'));
+            
+            return $result;
+            
+        } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+            log_message('error', 'Database enrollment failed: ' . $e->getMessage());
             
             // Check if it's a duplicate entry error
             if (strpos($e->getMessage(), 'Duplicate entry') !== false && strpos($e->getMessage(), 'user_id_course_id') !== false) {
                 return 'duplicate';
             }
             
+            return false;
+        } catch (\Exception $e) {
+            log_message('error', 'General enrollment failed: ' . $e->getMessage());
             return false;
         }
     }
@@ -109,8 +136,9 @@ class EnrollmentModel extends Model
      */
     public function getUserEnrollments($user_id)
     {
-        return $this->select('enrollments.*, courses.title, courses.description, courses.instructor_id, courses.duration, courses.level')
+        return $this->select('enrollments.*, courses.title, courses.description, courses.instructor_id, courses.duration, courses.level, courses.thumbnail, users.name as instructor_name')
                     ->join('courses', 'courses.id = enrollments.course_id')
+                    ->join('users', 'users.id = courses.instructor_id', 'left')
                     ->where('enrollments.user_id', $user_id)
                     ->where('enrollments.status', 'active')
                     ->orderBy('enrollments.enrollment_date', 'DESC')
@@ -118,16 +146,16 @@ class EnrollmentModel extends Model
     }
 
     /**
-     * Check if a user is already enrolled in a specific course
+     * Get all completed courses for a user
      */
-    public function isAlreadyEnrolled($user_id, $course_id)
+    public function getUserCompletedEnrollments($user_id)
     {
-        $result = $this->where('user_id', $user_id)
-                       ->where('course_id', $course_id)
-                       ->where('status', 'active')
-                       ->first();
-        
-        return !empty($result);
+        return $this->select('enrollments.*, courses.title, courses.description, courses.instructor_id, courses.duration, courses.level, courses.thumbnail')
+                    ->join('courses', 'courses.id = enrollments.course_id')
+                    ->where('enrollments.user_id', $user_id)
+                    ->where('enrollments.status', 'completed')
+                    ->orderBy('enrollments.enrollment_date', 'DESC')
+                    ->findAll();
     }
 
     /**
@@ -176,6 +204,16 @@ class EnrollmentModel extends Model
     }
 
     /**
+     * Count completed enrollments for a user
+     */
+    public function countUserCompletedEnrollments($user_id)
+    {
+        return $this->where('user_id', $user_id)
+                    ->where('status', 'completed')
+                    ->countAllResults();
+    }
+
+    /**
      * Update enrollment status
      */
     public function updateEnrollmentStatus($user_id, $course_id, $status)
@@ -210,16 +248,14 @@ class EnrollmentModel extends Model
     }
 
     /**
-     * Get recent enrollments
+     * Get recent enrollments for admin dashboard
      */
-    public function getRecentEnrollments($limit = 10)
+    public function getRecentEnrollments($limit = 5)
     {
         return $this->select('enrollments.*, users.name as student_name, courses.title as course_title')
                     ->join('users', 'users.id = enrollments.user_id')
                     ->join('courses', 'courses.id = enrollments.course_id')
-                    ->where('enrollments.status', 'active')
                     ->orderBy('enrollments.enrollment_date', 'DESC')
-                    ->limit($limit)
-                    ->findAll();
+                    ->findAll($limit);
     }
 }

@@ -30,7 +30,7 @@
             <!-- Enrollment Statistics -->
             <div class="row mb-5">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg">
+                    <div class="card stats-card shadow-lg" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
@@ -167,41 +167,27 @@
                         </div>
                         <div class="card-body">
                             <div class="list-group list-group-flush">
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <h6 class="mb-1">New enrollment</h6>
-                                        <small class="text-muted">John Smith - Web Development</small>
+                                <?php if (!empty($recentEnrollments)): ?>
+                                    <?php foreach ($recentEnrollments as $recent): ?>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <div>
+                                                <h6 class="mb-1">Enrollment <?= esc(ucfirst($recent['status'] ?? 'active')) ?></h6>
+                                                <small class="text-muted"><?= esc($recent['student_name'] ?? 'Unknown Student') ?> - <?= esc($recent['course_title'] ?? 'Unknown Course') ?></small>
+                                            </div>
+                                            <small class="text-muted">
+                                                <?php
+                                                    $time = isset($recent['enrollment_date']) ? strtotime($recent['enrollment_date']) : time();
+                                                    $daysAgo = max(0, round((time() - $time) / (60 * 60 * 24)));
+                                                    echo $daysAgo === 0 ? 'Today' : $daysAgo . ' day' . ($daysAgo !== 1 ? 's' : '') . ' ago';
+                                                ?>
+                                            </small>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="text-center text-muted py-3">
+                                        <small>No recent enrollment activity.</small>
                                     </div>
-                                    <small class="text-muted">2 hours ago</small>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <h6 class="mb-1">Course completed</h6>
-                                        <small class="text-muted">Jane Wilson - Python Basics</small>
-                                    </div>
-                                    <small class="text-muted">5 hours ago</small>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <h6 class="mb-1">Enrollment dropped</h6>
-                                        <small class="text-muted">Robert Brown - Database Systems</small>
-                                    </div>
-                                    <small class="text-muted">1 day ago</small>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <h6 class="mb-1">Status updated</h6>
-                                        <small class="text-muted">Lisa Anderson - Advanced JavaScript</small>
-                                    </div>
-                                    <small class="text-muted">2 days ago</small>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                    <div>
-                                        <h6 class="mb-1">Bulk enrollment</h6>
-                                        <small class="text-muted">15 students - UI/UX Design</small>
-                                    </div>
-                                    <small class="text-muted">3 days ago</small>
-                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -250,12 +236,12 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="student-avatar bg-primary text-white rounded-circle me-2" 
-                                                         style="width: 32px; height: 32px; display: flex; align-items: center; justify-content-center; font-size: 0.8rem;">
+                                                         style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">
                                                         <?= strtoupper(substr($enrollment['student_name'], 0, 2)) ?>
                                                     </div>
                                                     <div>
                                                         <div class="fw-bold"><?= esc($enrollment['student_name']) ?></div>
-                                                        <small class="text-muted">ID: <?= $enrollment['student_id'] ?? 'N/A' ?></small>
+                                                        <small class="text-muted">ID: <?= $enrollment['user_id'] ?? 'N/A' ?></small>
                                                     </div>
                                                 </div>
                                             </td>
@@ -299,15 +285,19 @@
                                             </td>
                                             <td>
                                                 <?php 
-                                                $progress = $enrollment['progress'] ?? 0;
-                                                $progressColor = $progress >= 80 ? 'success' : ($progress >= 50 ? 'warning' : 'danger');
+                                                $progress = $enrollment['progress'] ?? null;
+                                                if ($progress === null): ?>
+                                                    <span class="badge badge-modern bg-secondary">N/A</span>
+                                                <?php else: 
+                                                    $progressColor = $progress >= 80 ? 'success' : ($progress >= 50 ? 'warning' : 'danger');
                                                 ?>
-                                                <div class="d-flex align-items-center">
-                                                    <span class="badge badge-modern bg-<?= $progressColor ?> me-2"><?= $progress ?>%</span>
-                                                    <div class="progress" style="height: 6px; width: 60px;">
-                                                        <div class="progress-bar bg-<?= $progressColor ?>" style="width: <?= $progress ?>%"></div>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge badge-modern bg-<?= $progressColor ?> me-2"><?= $progress ?>%</span>
+                                                        <div class="progress" style="height: 6px; width: 60px;">
+                                                            <div class="progress-bar bg-<?= $progressColor ?>" style="width: <?= $progress ?>%"></div>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                <?php endif; ?>
                                             </td>
                                             <td class="text-center">
                                                 <div class="btn-group" role="group">

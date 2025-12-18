@@ -22,7 +22,7 @@
             <!-- Resources Statistics -->
             <div class="row mb-5">
                 <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card stats-card text-white shadow-lg">
+                    <div class="card stats-card shadow-lg" style="background: #6c757d;">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
@@ -237,7 +237,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="btn-group" role="group">
-                                                    <a href="<?= site_url('instructor/resources/download/' . $resource['id']) ?>" 
+                                                    <a href="<?= site_url('materials/download/' . $resource['id']) ?>" 
                                                        class="btn btn-modern btn-outline-primary btn-sm"
                                                        title="Download">
                                                         <i class="bi bi-download"></i>
@@ -247,7 +247,7 @@
                                                        title="Edit">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
-                                                    <a href="<?= site_url('instructor/resources/delete/' . $resource['id']) ?>" 
+                                                    <a href="<?= site_url('materials/delete/' . $resource['id']) ?>" 
                                                        class="btn btn-modern btn-outline-danger btn-sm"
                                                        title="Delete">
                                                         <i class="bi bi-trash"></i>

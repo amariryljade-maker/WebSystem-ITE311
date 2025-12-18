@@ -78,7 +78,7 @@
                                         Total Instructors
                                     </div>
                                     <div class="h1 mb-0 font-weight-bold">
-                                        <?= count(array_unique(array_column($courses, 'instructor_id'))) ?>
+                                        <?= $totalInstructors ?>
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -284,14 +284,7 @@
                                                 $instructorName = 'Not Assigned';
                                                 $instructorId = $course['instructor_id'] ?? null;
                                                 if ($instructorId) {
-                                                    // Mock instructor names based on ID
-                                                    $instructors = [
-                                                        1 => 'Dr. Michael Chen',
-                                                        2 => 'Prof. Emily Davis',
-                                                        3 => 'Lisa Anderson',
-                                                        4 => 'Thomas Lee'
-                                                    ];
-                                                    $instructorName = $instructors[$instructorId] ?? 'Unknown Instructor';
+                                                    $instructorName = $course['instructor_name'] ?? 'Unknown Instructor';
                                                 }
                                                 ?>
                                                 <div>

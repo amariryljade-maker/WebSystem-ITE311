@@ -8,6 +8,7 @@ use App\Models\QuizModel;
 use App\Models\UserModel;
 use App\Models\EnrollmentModel;
 use App\Models\MaterialModel;
+use App\Models\NotificationModel;
 
 helper(['auth']);
 
@@ -19,6 +20,7 @@ class Student extends BaseController
     protected $userModel;
     protected $enrollmentModel;
     protected $materialModel;
+    protected $notificationModel;
 
     public function __construct()
     {
@@ -28,6 +30,7 @@ class Student extends BaseController
         $this->userModel = new UserModel();
         $this->enrollmentModel = new EnrollmentModel();
         $this->materialModel = new MaterialModel();
+        $this->notificationModel = new NotificationModel();
     }
 
     /**
@@ -46,14 +49,16 @@ class Student extends BaseController
         }
 
         $userId = get_user_id();
-        
-        // Get actual enrolled courses using EnrollmentModel
+
+        // Get actual enrolled and completed courses using EnrollmentModel
         $enrolledCourses = $this->enrollmentModel->getUserEnrollments($userId);
-        
+        $completedCourses = $this->enrollmentModel->getUserCompletedEnrollments($userId);
+
         $data = [
             'title' => 'Student Dashboard',
             'user' => $this->userModel->find($userId),
             'enrolled_courses' => $enrolledCourses,
+            'completed_courses' => $completedCourses,
             'recent_assignments' => $this->assignmentModel->getStudentAssignments($userId, 5),
             'recent_quizzes' => $this->quizModel->getStudentQuizzes($userId, 5),
             'pending_assignments' => $this->assignmentModel->getPendingAssignments($userId),
@@ -90,6 +95,164 @@ class Student extends BaseController
     }
 
     /**
+     * Test database connection
+     */
+    public function testDb()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $result = $db->query("SELECT 1 as test")->getRow();
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Database connection successful!',
+                'result' => $result
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Database connection failed: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Test enrollment table
+     */
+    public function testTable()
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            // Check if table exists
+            $query = $db->query("SHOW TABLES LIKE 'enrollments'");
+            $tableExists = $query->getRow();
+            
+            if (!$tableExists) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Enrollments table does not exist!'
+                ]);
+            }
+            
+            // Get table structure
+            $structure = $db->query("DESCRIBE enrollments")->getResult();
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Enrollments table exists!',
+                'table_structure' => json_encode($structure, JSON_PRETTY_PRINT)
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error checking table: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Check existing enrollment
+     */
+    public function checkEnrollment()
+    {
+        $userId = $this->request->getGet('user_id');
+        $courseId = $this->request->getGet('course_id');
+        
+        if (!$userId || !$courseId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'User ID and Course ID are required'
+            ]);
+        }
+        
+        try {
+            $existing = $this->enrollmentModel->isAlreadyEnrolled($userId, $courseId);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $existing ? 'User is already enrolled in this course' : 'User is not enrolled in this course',
+                'is_enrolled' => $existing
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error checking enrollment: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Test enrollment
+     */
+    public function testEnrollment()
+    {
+        $userId = $this->request->getPost('user_id');
+        $courseId = $this->request->getPost('course_id');
+        
+        if (!$userId || !$courseId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'User ID and Course ID are required'
+            ]);
+        }
+        
+        try {
+            $enrollmentData = [
+                'user_id' => $userId,
+                'course_id' => $courseId,
+                'enrollment_date' => date('Y-m-d H:i:s'),
+                'status' => 'active'
+            ];
+            
+            $result = $this->enrollmentModel->enrollUser($enrollmentData);
+            
+            if ($result === 'duplicate') {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'User is already enrolled in this course'
+                ]);
+            } elseif ($result) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Enrollment successful!'
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Enrollment failed'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error during enrollment: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Show current enrollments
+     */
+    public function showEnrollments()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $enrollments = $db->query("SELECT * FROM enrollments ORDER BY created_at DESC")->getResult();
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'enrollments' => $enrollments
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error fetching enrollments: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Course Enrollment
      */
     public function enrollCourses()
@@ -108,12 +271,17 @@ class Student extends BaseController
             $userId = get_user_id();
             $courseId = $this->request->getPost('course_id');
             
+            log_message('info', 'Enrollment request - User ID: ' . $userId . ', Course ID: ' . $courseId);
+            
             // Validate course exists
             $course = $this->courseModel->find($courseId);
             if (!$course) {
+                log_message('error', 'Course not found: ' . $courseId);
                 session()->setFlashdata('error', 'Course not found.');
                 return redirect()->to('/student/courses');
             }
+            
+            log_message('info', 'Course found: ' . json_encode($course));
             
             // Attempt to enroll
             $enrollmentData = [
@@ -123,12 +291,20 @@ class Student extends BaseController
                 'status' => 'active'
             ];
             
+            log_message('info', 'Attempting enrollment with data: ' . json_encode($enrollmentData));
+            
             $result = $this->enrollmentModel->enrollUser($enrollmentData);
             
-            if ($result === true) {
-                session()->setFlashdata('success', 'Course enrolled successfully.');
-            } elseif ($result === 'duplicate') {
+            log_message('info', 'Enrollment result: ' . json_encode($result));
+            
+            if ($result === 'duplicate') {
                 session()->setFlashdata('error', 'You are already enrolled in this course.');
+            } elseif ($result) {
+                // Create notification for successful enrollment
+                $notificationMessage = "You have been enrolled in {$course['course_name']}";
+                $this->notificationModel->createNotification($userId, $notificationMessage);
+                
+                session()->setFlashdata('success', 'Course enrolled successfully.');
             } else {
                 session()->setFlashdata('error', 'Failed to enroll in course. Please try again.');
             }
@@ -169,18 +345,29 @@ class Student extends BaseController
             return redirect()->to('/student/courses');
         }
 
-        // Check if student is enrolled in this course
-        if (!$this->courseModel->isStudentEnrolled($userId, $id)) {
-            session()->setFlashdata('error', 'You are not enrolled in this course.');
-            return redirect()->to('/student/courses');
+        // Get instructor name
+        $instructorName = 'N/A';
+        if ($course['instructor_id']) {
+            $instructor = $this->userModel->find($course['instructor_id']);
+            $instructorName = $instructor ? $instructor['name'] : 'N/A';
         }
 
+        // Add course code if not present
+        if (!isset($course['code'])) {
+            $course['code'] = 'COURSE-' . str_pad($course['id'], 3, '0', STR_PAD_LEFT);
+        }
+
+        // Check if student is enrolled in this course
+        $isEnrolled = $this->enrollmentModel->isAlreadyEnrolled($userId, $id);
+        
         $data = [
             'title' => 'Course Details',
             'course' => $course,
-            'assignments' => $this->assignmentModel->getCourseAssignments($id),
-            'quizzes' => $this->quizModel->getCourseQuizzes($id),
-            'progress' => $this->courseModel->getStudentProgress($userId, $id)
+            'instructor_name' => $instructorName,
+            'is_enrolled' => $isEnrolled,
+            'assignments' => $isEnrolled ? $this->assignmentModel->getCourseAssignments($id) : [],
+            'quizzes' => $isEnrolled ? $this->quizModel->getCourseQuizzes($id) : [],
+            'progress' => $isEnrolled ? $this->courseModel->getStudentProgress($userId, $id) : null
         ];
 
         return view('student/view_course', $data);

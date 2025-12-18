@@ -1259,6 +1259,37 @@
                 <!-- Authentication Navigation -->
                 <ul class="navbar-nav">
                     <?php if (is_user_logged_in()): ?>
+                        <!-- Notification Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bell"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notification-badge" style="display: none;">
+                                    0
+                                    <span class="visually-hidden">unread notifications</span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown" style="min-width: 320px; max-width: 400px;">
+                                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span>Notifications</span>
+                                    <button class="btn btn-sm btn-outline-primary" id="mark-all-read-btn">Mark All Read</button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li id="notification-list">
+                                    <div class="text-center p-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-center" href="<?= base_url('notifications') ?>">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>View All Notifications
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
                         <?php 
                         $userRole = get_user_role();
                         $roleIcon = $userRole === 'admin' ? 'bi-shield-check' : 
@@ -1397,6 +1428,41 @@
 
     <!-- Main Content -->
     <main class="main-content" style="margin-top: <?= is_user_logged_in() && isset($breadcrumbs) && !empty($breadcrumbs) ? '140px' : '80px' ?>;">
+        <!-- Global Flash Notifications -->
+        <div class="container mt-3">
+            <?php if (session()->getFlashdata('success')): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <?= session()->getFlashdata('success') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <?= session()->getFlashdata('error') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('warning')): ?>
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <?= session()->getFlashdata('warning') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('info')): ?>
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <?= session()->getFlashdata('info') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <?= $this->renderSection('content') ?>
     </main>
 
@@ -1542,6 +1608,312 @@
                     }, 200);
                 }, 3000);
             }
+        });
+    </script>
+    
+    <!-- Notification System JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Notification system variables
+            let notificationInterval;
+            const NOTIFICATION_UPDATE_INTERVAL = 30000; // 30 seconds
+            
+            // Initialize notification system
+            initNotificationSystem();
+            
+            function initNotificationSystem() {
+                // Load initial notification count
+                updateNotificationBadge();
+                
+                // Load notifications when dropdown is opened
+                $('#notificationDropdown').on('click', function() {
+                    loadNotifications();
+                });
+                
+                // Handle "Mark All Read" button
+                $('#mark-all-read-btn').on('click', function(e) {
+                    e.preventDefault();
+                    markAllNotificationsRead();
+                });
+                
+                // Start periodic updates
+                startNotificationUpdates();
+            }
+            
+            function updateNotificationBadge() {
+                $.ajax({
+                    url: '<?= base_url("/notifications") ?>',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        const badge = $('#notification-badge');
+                        const count = response.unread_count || 0;
+                        
+                        if (count > 0) {
+                            badge.text(count > 99 ? '99+' : count);
+                            badge.show();
+                        } else {
+                            badge.hide();
+                        }
+                    },
+                    error: function() {
+                        $('#notification-badge').hide();
+                    }
+                });
+            }
+            
+            function loadNotifications() {
+                const notificationList = $('#notification-list');
+                
+                // Show loading spinner
+                notificationList.html(`
+                    <div class="text-center p-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                
+                $.ajax({
+                    url: '<?= base_url("/notifications") ?>',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        displayNotifications(response.notifications);
+                        updateNotificationBadgeCount(response.unread_count);
+                    },
+                    error: function() {
+                        notificationList.html(`
+                            <div class="text-center p-3 text-muted">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Failed to load notifications
+                            </div>
+                        `);
+                    }
+                });
+            }
+            
+            function displayNotifications(notifications) {
+                const notificationList = $('#notification-list');
+                
+                if (notifications.length === 0) {
+                    notificationList.html(`
+                        <div class="text-center p-3 text-muted">
+                            <i class="bi bi-bell-slash me-2"></i>
+                            No new notifications
+                        </div>
+                    `);
+                    return;
+                }
+                
+                let html = '';
+                notifications.forEach(function(notification) {
+                    const unreadClass = notification.is_read ? '' : 'bg-light';
+                    const createdDate = new Date(notification.created_at);
+                    const timeAgo = getTimeAgo(createdDate);
+                    
+                    html += `
+                        <li>
+                            <a href="#" class="dropdown-item notification-item ${unreadClass}" 
+                               data-notification-id="${notification.id}"
+                               style="white-space: normal; padding: 12px 16px;">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="bi bi-info-circle-fill text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <div class="small text-muted">${notification.message}</div>
+                                        <div class="small text-muted mt-1">
+                                            <i class="bi bi-clock me-1"></i>${timeAgo}
+                                        </div>
+                                    </div>
+                                    ${!notification.is_read ? '<div class="flex-shrink-0"><span class="badge bg-primary rounded-pill">New</span></div>' : ''}
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-primary mark-read-btn" data-notification-id="${notification.id}">
+                                        <i class="bi bi-check2 me-1"></i>Mark as Read
+                                    </button>
+                                </div>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                    `;
+                });
+                
+                notificationList.html(html);
+                
+                // Attach click handlers to mark as read buttons
+                $('.mark-read-btn').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const notificationId = $(this).data('notification-id');
+                    markNotificationRead(notificationId, $(this).closest('.notification-item'));
+                });
+            }
+            
+            function getTimeAgo(date) {
+                const seconds = Math.floor((new Date() - date) / 1000);
+                
+                let interval = seconds / 31536000;
+                if (interval > 1) {
+                    return Math.floor(interval) + " year" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+                }
+                interval = seconds / 2592000;
+                if (interval > 1) {
+                    return Math.floor(interval) + " month" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+                }
+                interval = seconds / 86400;
+                if (interval > 1) {
+                    return Math.floor(interval) + " day" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+                }
+                interval = seconds / 3600;
+                if (interval > 1) {
+                    return Math.floor(interval) + " hour" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+                }
+                interval = seconds / 60;
+                if (interval > 1) {
+                    return Math.floor(interval) + " minute" + (Math.floor(interval) > 1 ? "s" : "") + " ago";
+                }
+                return Math.floor(seconds) + " second" + (Math.floor(seconds) > 1 ? "s" : "") + " ago";
+            }
+            
+            function getNotificationIcon(type) {
+                const icons = {
+                    'success': 'bi-check-circle-fill',
+                    'warning': 'bi-exclamation-triangle-fill',
+                    'danger': 'bi-x-circle-fill',
+                    'info': 'bi-info-circle-fill',
+                    'primary': 'bi-info-circle-fill'
+                };
+                return icons[type] || 'bi-info-circle-fill';
+            }
+            
+            function getNotificationBadgeClass(type) {
+                const badges = {
+                    'success': 'success',
+                    'warning': 'warning',
+                    'danger': 'danger',
+                    'info': 'info',
+                    'primary': 'primary'
+                };
+                return badges[type] || 'secondary';
+            }
+            
+            function updateNotificationBadgeCount(count) {
+                const badge = $('#notification-badge');
+                if (count > 0) {
+                    badge.text(count > 99 ? '99+' : count);
+                    badge.show();
+                } else {
+                    badge.hide();
+                }
+            }
+            
+            function markNotificationRead(notificationId, element) {
+                $.ajax({
+                    url: '<?= base_url("/notifications/mark_read/") ?>' + notificationId,
+                    method: 'POST',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // Remove the notification item from the list
+                            element.closest('li').next('hr').remove();
+                            element.closest('li').remove();
+                            
+                            // Update badge count
+                            updateNotificationBadge();
+                        }
+                    },
+                    error: function() {
+                        // Show error message
+                        console.error('Failed to mark notification as read');
+                    }
+                });
+            }
+            
+            function markAllNotificationsRead() {
+                $.ajax({
+                    url: '<?= base_url("notifications/mark-all-read-ajax") ?>',
+                    method: 'POST',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Reload notifications
+                            loadNotifications();
+                            // Update badge
+                            updateNotificationBadgeCount(0);
+                            
+                            // Show success message
+                            showToast('All notifications marked as read', 'success');
+                        } else {
+                            showToast(response.message || 'Failed to mark all as read', 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Failed to mark all notifications as read', 'error');
+                    }
+                });
+            }
+            
+            function startNotificationUpdates() {
+                // Clear existing interval
+                if (notificationInterval) {
+                    clearInterval(notificationInterval);
+                }
+                
+                // Set up periodic updates
+                notificationInterval = setInterval(function() {
+                    updateNotificationBadge();
+                }, NOTIFICATION_UPDATE_INTERVAL);
+            }
+            
+            function showToast(message, type = 'info') {
+                // Create toast element if it doesn't exist
+                if ($('#toast-container').length === 0) {
+                    $('body').append(`
+                        <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+                        </div>
+                    `);
+                }
+                
+                const toastId = 'toast-' + Date.now();
+                const bgClass = type === 'success' ? 'bg-success' : 
+                               type === 'error' ? 'bg-danger' : 
+                               type === 'warning' ? 'bg-warning' : 'bg-info';
+                
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                $('#toast-container').append(toastHtml);
+                
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, {
+                    autohide: true,
+                    delay: 3000
+                });
+                
+                toast.show();
+                
+                // Remove toast element after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', function() {
+                    $(this).remove();
+                });
+            }
+            
+            // Clean up interval when page is unloaded
+            $(window).on('beforeunload', function() {
+                if (notificationInterval) {
+                    clearInterval(notificationInterval);
+                }
+            });
         });
     </script>
     

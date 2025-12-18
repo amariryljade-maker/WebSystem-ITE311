@@ -7,6 +7,7 @@ use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use App\Models\NotificationModel;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -27,6 +28,7 @@ abstract class BaseController extends Controller
      * @var CLIRequest|IncomingRequest
      */
     protected $request;
+    protected $notificationModel;
 
     /**
      * An array of helpers to be loaded automatically upon
@@ -52,7 +54,18 @@ abstract class BaseController extends Controller
         parent::initController($request, $response, $logger);
 
         // Preload any models, libraries, etc, here.
+        $this->notificationModel = new NotificationModel();
 
-        // E.g.: $this->session = \Config\Services::session();
+        // Load notification data for logged-in users
+        if (session()->has('user_id')) {
+            $userId = session()->get('user_id');
+            $unreadCount = $this->notificationModel->getUnreadCount($userId);
+            
+            // Make notification data available to all views
+            $this->notificationData = [
+                'unread_count' => $unreadCount,
+                'user_id' => $userId
+            ];
+        }
     }
 }

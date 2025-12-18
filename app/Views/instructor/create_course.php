@@ -67,14 +67,17 @@
                             <?php endif; ?>
                         </div>
 
-                        <!-- Course Code -->
+                        <!-- Control Number -->
                         <div class="mb-4">
-                            <label for="course_code" class="form-label fw-semibold">
-                                Course Code
+                            <label for="control_number" class="form-label fw-semibold">
+                                Control Number <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="course_code" name="course_code" 
-                                   placeholder="e.g., CS101, MATH201" value="<?= set_value('course_code') ?>">
-                            <div class="form-text">Optional: Assign a unique course code for easy identification.</div>
+                            <input type="text" class="form-control" id="control_number" name="control_number" 
+                                   placeholder="e.g., CN-2024-001, CTRL-12345" value="<?= set_value('control_number') ?>" required>
+                            <div class="form-text">Enter a unique control number for administrative tracking and course identification.</div>
+                            <?php if (isset($validation) && $validation->getError('control_number')): ?>
+                                <div class="text-danger small"><?= $validation->getError('control_number') ?></div>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Description -->
